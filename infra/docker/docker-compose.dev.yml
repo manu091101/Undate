@@ -1,0 +1,57 @@
+name: lumin-dev
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lumin
+      POSTGRES_PASSWORD: lumin_dev
+      POSTGRES_DB: lumin
+    # Host-side 5433 to avoid clashing with a local Postgres on 5432.
+    # Container still listens on 5432 internally.
+    ports: ['5433:5432']
+    volumes:
+      - lumin_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U lumin -d lumin']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports: ['6379:6379']
+    volumes:
+      - lumin_redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin_dev
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - lumin_minio:/data
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+
+volumes:
+  lumin_pg:
+  lumin_redis:
+  lumin_minio:

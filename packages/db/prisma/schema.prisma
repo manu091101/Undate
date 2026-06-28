@@ -1,0 +1,761 @@
+// Lumin — production Prisma schema.
+// Postgres 16 + pgvector. Region-isolated deployment (IN data → Mumbai, SG → Singapore).
+// Every PII field considered for envelope encryption at the application layer.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "fullTextSearch"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  // `directUrl` is intentionally omitted: needed only when running migrations
+  // through a pooled connection (Supabase / Neon). In local + ECS Fargate
+  // deployments DATABASE_URL serves both online traffic and migrations.
+  extensions = [pgvector(map: "vector"), pgcrypto, citext]
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ────────────────────────────────────────────────────────────────────────────
+
+enum UserStatus {
+  WAITLIST
+  PENDING_REVIEW
+  ACTIVE
+  PAUSED
+  BANNED
+  DELETED
+}
+
+enum AuthProvider {
+  PHONE
+  EMAIL
+  GOOGLE
+  APPLE
+  PASSKEY
+}
+
+enum Region {
+  IN
+  SG
+  EU
+  US
+  AE
+  OTHER
+}
+
+enum Gender {
+  WOMAN
+  MAN
+  NONBINARY
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum RelationshipGoal {
+  SERIOUS_DATING
+  MARRIAGE
+  LIFE_PARTNER
+  EXPLORING
+}
+
+enum AttachmentStyle {
+  SECURE
+  ANXIOUS
+  AVOIDANT
+  DISORGANIZED
+  UNKNOWN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PHOTO_VERIFIED
+  ID_VERIFIED
+  VIP_VERIFIED
+}
+
+enum MediaKind {
+  PHOTO
+  VOICE_INTRO
+  VIDEO_INTRO
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  MANUAL_REVIEW
+}
+
+enum MatchState {
+  PROPOSED
+  DELIVERED
+  VIEWED
+  PASSED_A
+  PASSED_B
+  SAVED_A
+  SAVED_B
+  ACCEPTED_A
+  ACCEPTED_B
+  MUTUAL
+  EXPIRED
+  CONCLUDED
+}
+
+enum MessageKind {
+  TEXT
+  VOICE
+  IMAGE
+  AI_SUGGESTION_HINT
+  SYSTEM
+}
+
+enum SubscriptionTier {
+  FREE
+  PLUS
+  CONCIERGE
+  VIP
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  PAUSED
+  EXPIRED
+}
+
+enum PaymentProvider {
+  STRIPE
+  RAZORPAY
+  APPLE_IAP
+  GOOGLE_PLAY
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  DISPUTED
+}
+
+enum ReportReason {
+  HARASSMENT
+  INAPPROPRIATE_CONTENT
+  FAKE_PROFILE
+  SCAM
+  MINOR
+  VIOLENCE_THREAT
+  OFF_PLATFORM_REDIRECT
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  TRIAGED
+  ACTIONED
+  DISMISSED
+}
+
+enum SafetySignalKind {
+  VELOCITY_ANOMALY
+  SCAM_PATTERN
+  HARASSMENT_CLASSIFIER
+  CATFISH_SUSPICION
+  DEEPFAKE_SUSPICION
+  OFF_PLATFORM_REDIRECT
+}
+
+enum AIInsightKind {
+  COMPATIBILITY_NARRATIVE
+  ICEBREAKER_SUGGESTION
+  COACHING_NOTE
+  GHOSTING_RISK
+  PERSONALITY_ESTIMATE
+}
+
+enum WaitlistStatus {
+  WAITING
+  INVITED
+  ACCEPTED
+  EXPIRED
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// IDENTITY & ACCOUNT
+// ────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email            String?       @unique @db.Citext
+  phoneE164        String?       @unique
+  passwordHash     String?       // bcrypt; null for OAuth-only / passkey-only accounts
+  authProvider     AuthProvider
+  externalAuthId   String?       @unique // Clerk / OAuth subject
+  status           UserStatus    @default(WAITLIST)
+  isAdmin          Boolean       @default(false) // staff/admin gate for the curation dashboard
+  residencyRegion  Region        // IMMUTABLE post-onboarding; drives data-residency routing
+  locale           String        @default("en")
+  invitedById      String?       @db.Uuid
+  invitedBy        User?         @relation("UserInvites", fields: [invitedById], references: [id])
+  inviteesOut      User[]        @relation("UserInvites")
+
+  createdAt        DateTime      @default(now())
+  lastActiveAt     DateTime?
+  deletedAt        DateTime?
+
+  profile          Profile?
+  preferences      Preferences?
+  personality      PersonalityProfile?
+  photos           Photo[]
+  media            Media[]
+  onboardingResponses OnboardingResponse[]
+  matchesAsA       Match[]       @relation("MatchUserA")
+  matchesAsB       Match[]       @relation("MatchUserB")
+  matchFeedback    MatchFeedback[]
+  profilePrompts   ProfilePrompt[]
+  conversations    ConversationParticipant[]
+  messagesSent     Message[]
+  aiInsights       AIInsight[]
+  aiAgentSessions  AIAgentSession[]
+  subscription     Subscription?
+  payments         Payment[]
+  referralsMade    Referral[]    @relation("Referrer")
+  referralsRedeemed Referral[]   @relation("Redeemer")
+  waitlistEntry    WaitlistEntry?
+  reportsFiled     Report[]      @relation("Reporter")
+  reportsAgainst   Report[]      @relation("Reportee")
+  moderationLogs   ModerationLog[]
+  safetySignals    SafetySignal[]
+  curatorRecord    Curator?
+  conciergeNotes   ConciergeNote[] @relation("ConciergeUser")
+  events           AnalyticsEvent[]
+  sessions         AuthSession[]
+
+  @@index([residencyRegion, status])
+  @@index([phoneE164])
+  @@index([email])
+  @@index([createdAt])
+}
+
+model AuthSession {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @db.Uuid
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshHash     String   @unique // hash of refresh token; never store plaintext
+  family          String   @db.Uuid // rotation family, used to revoke on reuse
+  deviceFingerprint String?
+  ipCidr          String?
+  userAgent       String?
+  expiresAt       DateTime
+  revokedAt       DateTime?
+  createdAt       DateTime @default(now())
+  lastUsedAt      DateTime @default(now())
+
+  @@index([userId, expiresAt])
+  @@index([family])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// PROFILE & ONBOARDING
+// ────────────────────────────────────────────────────────────────────────────
+
+model Profile {
+  userId           String       @id @db.Uuid
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  displayName      String
+  pronouns         String?
+  dateOfBirth      DateTime     @db.Date
+  gender           Gender
+  city             String
+  // Geo coordinates resolved server-side from city. PostGIS deferred to v2.
+  latitude         Float?
+  longitude        Float?
+
+  occupation       String?
+  company          String?
+  workplace        String?      // department / team / role detail
+  education        String?
+  heightCm         Int?
+  relationshipGoal RelationshipGoal?
+
+  bioShort         String?      @db.VarChar(280)
+  bioLong          String?      @db.VarChar(2000)
+  aboutMe          String?      @db.VarChar(2000)  // longer "about me" paragraph
+
+  // Lifestyle fields. All free-text-as-enum to avoid migrations every time we add an option.
+  drinking         String?      // NEVER / SOCIALLY / REGULARLY / PREFER_NOT_SAY
+  smoking          String?      // NEVER / SOCIALLY / REGULARLY / PREFER_NOT_SAY
+  exercise         String?      // NEVER / SOMETIMES / OFTEN / DAILY
+  diet             String?      // OMNIVORE / PESCATARIAN / VEGETARIAN / VEGAN / OTHER
+  religion         String?      // user-stated; never inferred
+  zodiacSign       String?
+
+  // Tag arrays — surfaced on profile as pills.
+  interests        String[]     @default([])
+  languages        String[]     @default([])
+
+  // Encrypted in application layer (Tink envelope encryption). Stored as bytea.
+  sensitiveAttrs   Bytes?       // religion, orientation, kinks, dealbreaker flags
+
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  completionScore  Int          @default(0) // 0-100
+  curatorReady     Boolean      @default(false)
+
+  // 3072-dim Matryoshka embedding from voyage-3-large / text-embedding-3-large.
+  // Reducible to 1024 / 512 / 256 by slicing for cost-tier search.
+  profileEmbedding Unsupported("vector(3072)")?
+
+  updatedAt        DateTime     @updatedAt
+  createdAt        DateTime     @default(now())
+
+  @@index([city])
+  @@index([verificationStatus])
+}
+
+model OnboardingResponse {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionKey String   // stable key per question, see shared/onboarding-questions.ts
+  questionVersion Int   @default(1)
+  answer      Json     // {kind, value, weight?}
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, questionKey])
+  @@index([userId])
+}
+
+model PersonalityProfile {
+  userId           String          @id @db.Uuid
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Big Five (scored 0-100) — z-scored before use in matching.
+  openness         Float?
+  conscientiousness Float?
+  extraversion     Float?
+  agreeableness    Float?
+  neuroticism      Float?           // negative weight in matching, per Malouff et al. 2010
+
+  attachmentStyle  AttachmentStyle  @default(UNKNOWN)
+  communicationStyle String?        // {DIRECT, GENTLE, PLAYFUL, REFLECTIVE, ANALYTICAL}
+  mbtiType         String?          // 16-type Myers-Briggs mapping, e.g. "INFJ"
+
+  // Schwartz values vector (10 dims) + free embedding
+  valuesEmbedding  Unsupported("vector(1536)")?
+
+  computedAt       DateTime         @default(now())
+  modelVersion     String           @default("v0.1")
+}
+
+model Preferences {
+  userId             String           @id @db.Uuid
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  ageMin             Int              @default(25)
+  ageMax             Int              @default(40)
+  distanceKm         Int              @default(50)
+  acceptedGenders    Gender[]
+  goalsAcceptable    RelationshipGoal[]
+
+  dealbreakers       Json             @default("{}")  // hard filters
+  mustHaves          Json             @default("{}")
+  niceToHaves        Json             @default("{}")
+
+  // Cross-region opt-in (SG↔IN cross-matching). Off by default.
+  acceptsCrossRegion Boolean          @default(false)
+  acceptedRegions    Region[]
+
+  updatedAt          DateTime         @updatedAt
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// MEDIA
+// ────────────────────────────────────────────────────────────────────────────
+
+model Photo {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String           @db.Uuid
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  s3Key           String           @unique
+  caption         String?          @db.VarChar(140) // Hinge-style per-photo caption
+  blurhash        String?
+  width           Int?
+  height          Int?
+  orderIdx        Int              @default(0)
+  isPrimary       Boolean          @default(false)
+  moderationStatus ModerationStatus @default(PENDING)
+  moderationReason String?
+  // Optional invisible per-viewer watermarking key reference (rotated regularly).
+  watermarkKeyRef String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId, orderIdx])
+  @@index([moderationStatus])
+}
+
+// Hinge's signature feature: 3 prompt-and-answer cards visible on each profile.
+// promptKey references a curated library in packages/shared/src/prompts.ts.
+model ProfilePrompt {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptKey String   // see packages/shared/src/prompts.ts for the curated set
+  answer    String   @db.VarChar(280)
+  orderIdx  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, promptKey])
+  @@index([userId, orderIdx])
+}
+
+model Media {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String           @db.Uuid
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind            MediaKind
+  s3Key           String           @unique
+  durationMs      Int?
+  transcript      String?          // for voice/video (Whisper)
+  waveformPng     String?
+  moderationStatus ModerationStatus @default(PENDING)
+  createdAt       DateTime         @default(now())
+
+  @@index([userId, kind])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// MATCHING
+// ────────────────────────────────────────────────────────────────────────────
+
+model Match {
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // Canonical ordering: userAId < userBId lexicographically — enforce via app layer + unique constraint.
+  userAId            String       @db.Uuid
+  userBId            String       @db.Uuid
+  userA              User         @relation("MatchUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB              User         @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  weekId             String       // e.g. "2026-W22" — for weekly cohort grouping
+  modelVersion       String       @default("v0.1")
+  pipelineVersion    String       @default("v0.1")
+
+  compatibilityScore Float        // 0-1
+  scoreBreakdown     Json         // {attachment, goals, values, lifestyle, curator}
+  aiNarrative        String?
+  narrativeModel     String?
+  curatorId          String?      @db.Uuid
+  curator            Curator?     @relation(fields: [curatorId], references: [id])
+
+  state              MatchState   @default(PROPOSED)
+  proposedAt         DateTime     @default(now())
+  deliveredAt        DateTime?
+  viewedAtA          DateTime?
+  viewedAtB          DateTime?
+  expiresAt          DateTime
+  mutualAt           DateTime?
+  concludedAt        DateTime?
+
+  conversation       Conversation?
+  feedback           MatchFeedback[]
+  aiInsights         AIInsight[]
+
+  // Canonical ordering invariant: userAId < userBId, enforced at the DB level
+  // via a CHECK constraint added in the initial migration. The unique on
+  // (userAId, userBId, weekId) only prevents same-ordered duplicates; the
+  // CHECK forbids the reverse-ordered pair entirely.
+  @@unique([userAId, userBId, weekId])
+  @@index([userAId, state, expiresAt])
+  @@index([userBId, state, expiresAt])
+  @@index([weekId])
+  @@index([state, expiresAt])
+}
+
+model MatchFeedback {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  matchId     String   @db.Uuid
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating      Int?     // 1-5
+  reason      String?  // structured: not-my-type, location, energy, etc.
+  freeform    String?
+  metInRealLife Boolean? // collected via post-match survey
+  secondDate  Boolean?
+  createdAt   DateTime @default(now())
+
+  @@unique([matchId, userId])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// CONVERSATIONS & MESSAGES
+// ────────────────────────────────────────────────────────────────────────────
+
+model Conversation {
+  id            String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  matchId       String                    @unique @db.Uuid
+  match         Match                     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  startedAt     DateTime                  @default(now())
+  lastMessageAt DateTime?
+  archivedAt    DateTime?
+
+  participants  ConversationParticipant[]
+  messages      Message[]
+
+  @@index([lastMessageAt])
+}
+
+model ConversationParticipant {
+  conversationId String       @db.Uuid
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String       @db.Uuid
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt     DateTime?
+  mutedUntil     DateTime?
+  joinedAt       DateTime     @default(now())
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId  String       @db.Uuid
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId        String       @db.Uuid
+  sender          User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  kind            MessageKind  @default(TEXT)
+  body            String?      @db.VarChar(4000)
+  mediaUrl        String?      // for voice / image
+  aiAssisted      Boolean      @default(false) // EU AI Act Art 50 disclosure
+  guardrailVerdict Json?       // safety classifier outcome
+  sentimentScore  Float?
+  createdAt       DateTime     @default(now())
+  editedAt        DateTime?
+  deletedAt       DateTime?
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([senderId])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// AI
+// ────────────────────────────────────────────────────────────────────────────
+
+model AIInsight {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind         AIInsightKind
+  userId       String?       @db.Uuid
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchId      String?       @db.Uuid
+  match        Match?        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  payload      Json
+  model        String
+  promptVersion String
+  groundingSpans Json?       // {field, char_start, char_end}[] — quote-grounded outputs
+  createdAt    DateTime      @default(now())
+
+  @@index([userId, kind, createdAt])
+  @@index([matchId, kind])
+}
+
+model AIAgentSession {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode        String   // {coach, icebreaker_pick, mediator_consent_pending}
+  transcript  Json     @default("[]")
+  tokensUsed  Int      @default(0)
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+
+  @@index([userId, startedAt])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// SUBSCRIPTIONS & PAYMENTS
+// ────────────────────────────────────────────────────────────────────────────
+
+model Subscription {
+  userId               String              @id @db.Uuid
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier                 SubscriptionTier    @default(FREE)
+  status               SubscriptionStatus  @default(ACTIVE)
+  provider             PaymentProvider?
+  providerSubId        String?             @unique
+  currency             String?             // ISO-4217
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean             @default(false)
+  trialEndsAt          DateTime?
+  pausedAt             DateTime?
+  canceledAt           DateTime?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+}
+
+model Payment {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String          @db.Uuid
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amountMinor   Int             // store as smallest unit (paise/cent)
+  currency      String
+  provider      PaymentProvider
+  providerEventId String?       @unique // for idempotency
+  status        PaymentStatus
+  description   String?
+  invoiceUrl    String?
+  metadata      Json?
+  createdAt     DateTime        @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// WAITLIST & REFERRALS
+// ────────────────────────────────────────────────────────────────────────────
+
+model WaitlistEntry {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String?        @unique @db.Uuid
+  user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email           String         @unique @db.Citext
+  phoneE164       String?
+  city            String?
+  region          Region
+  position        Int?           // assigned after batch ranking
+  referralCode    String         @unique
+  referralPoints  Int            @default(0)
+  status          WaitlistStatus @default(WAITING)
+  answers         Json?          // pre-account questionnaire captured at join (see WaitlistQuestionnaire)
+  inviteTokenHash String?        // sha256 of the single-use registration token (minted on approval)
+  invitedAt       DateTime?
+  acceptedAt      DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime       @default(now())
+
+  @@index([region, status])
+  @@index([referralCode])
+}
+
+model Referral {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referrerId    String   @db.Uuid
+  referrer      User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  redeemerId    String?  @db.Uuid
+  redeemer      User?    @relation("Redeemer", fields: [redeemerId], references: [id])
+  code          String   @unique
+  invitedEmail  String?  @db.Citext
+  redeemedAt    DateTime?
+  pointsAwarded Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([referrerId])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// MODERATION & SAFETY
+// ────────────────────────────────────────────────────────────────────────────
+
+model Report {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporterId   String       @db.Uuid
+  reporter     User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reporteeId   String       @db.Uuid
+  reportee     User         @relation("Reportee", fields: [reporteeId], references: [id], onDelete: Cascade)
+  conversationId String?    @db.Uuid
+  messageId    String?      @db.Uuid
+  reason       ReportReason
+  freeform     String?
+  evidenceUrls String[]
+  status       ReportStatus @default(OPEN)
+  resolvedAt   DateTime?
+  resolvedBy   String?      @db.Uuid // moderator user id
+  resolution   String?
+  createdAt    DateTime     @default(now())
+
+  @@index([reporteeId, status])
+  @@index([status, createdAt])
+}
+
+model SafetySignal {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String           @db.Uuid
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      SafetySignalKind
+  score     Float
+  raw       Json
+  createdAt DateTime         @default(now())
+
+  @@index([userId, kind, createdAt])
+}
+
+model ModerationLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String?  @db.Uuid
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  targetType String   // user | photo | message | media | report
+  targetId   String
+  action     String   // hide | unhide | warn | suspend | ban | dismiss
+  reason     String?
+  actor      String   // system | moderator:<id> | curator:<id>
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([userId])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// CURATORS & CONCIERGE
+// ────────────────────────────────────────────────────────────────────────────
+
+model Curator {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String          @unique @db.Uuid // curator's own User account
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName String
+  region      Region
+  specialty   String?
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+
+  matches     Match[]
+  notes       ConciergeNote[]
+}
+
+model ConciergeNote {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @db.Uuid
+  user       User     @relation("ConciergeUser", fields: [userId], references: [id], onDelete: Cascade)
+  curatorId  String   @db.Uuid
+  curator    Curator  @relation(fields: [curatorId], references: [id], onDelete: Cascade)
+  body       String
+  visibility String   @default("internal") // internal | user-visible
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// ANALYTICS (mirrored to ClickHouse via CDC)
+// ────────────────────────────────────────────────────────────────────────────
+
+model AnalyticsEvent {
+  id         BigInt   @id @default(autoincrement())
+  userId     String?  @db.Uuid
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name       String
+  properties Json
+  sessionId  String?
+  ts         DateTime @default(now())
+
+  @@index([userId, ts])
+  @@index([name, ts])
+}

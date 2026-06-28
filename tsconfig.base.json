@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowJs": false,
+    "checkJs": false,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "exactOptionalPropertyTypes": false,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
+    "resolveJsonModule": true,
+
+    "skipLibCheck": true,
+    "incremental": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@lumin/ai": ["./packages/ai/src"],
+      "@lumin/ai/*": ["./packages/ai/src/*"],
+      "@lumin/config": ["./packages/config"],
+      "@lumin/config/*": ["./packages/config/*"],
+      "@lumin/db": ["./packages/db/src"],
+      "@lumin/db/*": ["./packages/db/src/*"],
+      "@lumin/shared": ["./packages/shared/src"],
+      "@lumin/shared/*": ["./packages/shared/src/*"],
+      "@lumin/ui": ["./packages/ui/src"],
+      "@lumin/ui/*": ["./packages/ui/src/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".next", ".turbo", "build", ".expo"]
+}

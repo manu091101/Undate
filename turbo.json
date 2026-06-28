@@ -1,0 +1,78 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalDependencies": [
+    "**/.env.*local",
+    "tsconfig.base.json",
+    ".env.example"
+  ],
+  "globalEnv": [
+    "NODE_ENV",
+    "CI",
+    "VERCEL",
+    "VERCEL_ENV"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.md",
+        "!**/*.test.ts",
+        "!**/*.test.tsx",
+        "!**/*.spec.ts"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "build/**",
+        ".expo/**"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "DIRECT_URL",
+        "NEXT_PUBLIC_*",
+        "EXPO_PUBLIC_*"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "**/*.{ts,tsx,js,jsx}",
+        "eslint.config.*",
+        ".eslintrc*"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "**/*.{ts,tsx}",
+        "tsconfig*.json"
+      ],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "**/*.test.{ts,tsx}",
+        "**/*.spec.{ts,tsx}",
+        "vitest.config.*",
+        "jest.config.*"
+      ],
+      "outputs": ["coverage/**"]
+    },
+    "clean": {
+      "cache": false
+    },
+    "@lumin/db#generate": {
+      "cache": false,
+      "inputs": ["prisma/schema.prisma"]
+    }
+  }
+}

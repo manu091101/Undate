@@ -1,0 +1,18 @@
+{
+  "name": "@lumin/config",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./eslint": "./eslint/index.mjs",
+    "./tailwind": "./tailwind/preset.cjs",
+    "./tsconfig/base": "./typescript/base.json",
+    "./tsconfig/nextjs": "./typescript/nextjs.json",
+    "./tsconfig/nestjs": "./typescript/nestjs.json",
+    "./tsconfig/expo": "./typescript/expo.json",
+    "./prettier": "./prettier/index.cjs"
+  },
+  "dependencies": {
+    "@lumin/shared": "workspace:*",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}

@@ -1,0 +1,40 @@
+# syntax=docker/dockerfile:1.7
+# Multi-stage production Dockerfile for the Lumin API (NestJS).
+
+FROM node:20-alpine AS base
+ENV PNPM_HOME=/usr/local/bin
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
+WORKDIR /repo
+
+# ── Deps stage ─────────────────────────────────────────────────────────────
+FROM base AS deps
+COPY pnpm-workspace.yaml package.json turbo.json tsconfig.base.json ./
+COPY apps/api/package.json apps/api/package.json
+COPY packages/db/package.json packages/db/package.json
+COPY packages/shared/package.json packages/shared/package.json
+COPY packages/ai/package.json packages/ai/package.json
+COPY packages/config/package.json packages/config/package.json
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+
+# ── Build stage ────────────────────────────────────────────────────────────
+FROM deps AS build
+COPY packages packages
+COPY apps/api apps/api
+RUN pnpm --filter @lumin/db generate
+RUN pnpm --filter @lumin/api build
+
+# ── Runtime stage ──────────────────────────────────────────────────────────
+FROM node:20-alpine AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+RUN addgroup -S lumin && adduser -S lumin -G lumin
+COPY --from=build /repo/apps/api/dist ./dist
+COPY --from=build /repo/apps/api/package.json ./
+COPY --from=build /repo/node_modules ./node_modules
+COPY --from=build /repo/packages ./packages
+USER lumin
+EXPOSE 4000
+HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
+  CMD wget -q -O- http://127.0.0.1:4000/healthz || exit 1
+CMD ["node", "dist/main.js"]
