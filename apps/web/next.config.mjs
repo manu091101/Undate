@@ -6,9 +6,13 @@ const isDev = process.env.NODE_ENV !== 'production';
 // When we move to a nonce-based CSP via middleware, the dev branch goes away.
 const csp = [
   "default-src 'self'",
+  // Next.js App Router injects inline bootstrap/flight scripts. Without
+  // 'unsafe-inline' (or a per-request nonce) the browser blocks them and React
+  // 19 hydration wipes the server HTML → blank page. Allow inline in both
+  // environments; a nonce-based CSP via middleware is the future hardening.
   isDev
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-    : "script-src 'self'",
+    : "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://cdn.lumin.ai https://images.unsplash.com https://i.pravatar.cc https://images.pexels.com",
   "font-src 'self' data:",
