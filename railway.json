@@ -1,0 +1,12 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "pnpm --filter @lumin/db exec prisma generate && pnpm --filter @lumin/web build"
+  },
+  "deploy": {
+    "startCommand": "pnpm --filter @lumin/db exec prisma db push --skip-generate && pnpm --filter @lumin/web start",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  }
+}
