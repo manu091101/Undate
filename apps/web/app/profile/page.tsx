@@ -48,10 +48,10 @@ export default async function ProfilePage() {
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-gold-300">Your profile</p>
             <h1 className="mt-2 font-display text-4xl tracking-tight">
-              {user.profile?.displayName ?? '—'}{age ? `, ${age}` : ''}
+              {user.profile?.displayName ?? ', '}{age ? `, ${age}` : ''}
             </h1>
             <p className="mt-1 text-sm text-cream-50/60">
-              {user.profile?.city ?? '—'} · {user.profile?.gender ?? '—'}
+              {user.profile?.city ?? ', '} · {user.profile?.gender ?? ', '}
             </p>
           </div>
           {user.profile?.bioShort ? (
@@ -84,7 +84,7 @@ export default async function ProfilePage() {
           <CardContent className="p-6">
             <h3 className="font-display text-lg tracking-tight flex items-center gap-2"><Sparkle size={14}/> Compatibility model</h3>
             <dl className="mt-4 space-y-2 text-sm">
-              <Row k="Attachment style" v={user.personality?.attachmentStyle ?? '—'} />
+              <Row k="Attachment style" v={user.personality?.attachmentStyle ?? ', '} />
               <Row k="Openness" v={fmt(user.personality?.openness)} />
               <Row k="Conscientiousness" v={fmt(user.personality?.conscientiousness)} />
               <Row k="Extraversion" v={fmt(user.personality?.extraversion)} />
@@ -97,9 +97,9 @@ export default async function ProfilePage() {
           <CardContent className="p-6">
             <h3 className="font-display text-lg tracking-tight">Preferences</h3>
             <dl className="mt-4 space-y-2 text-sm">
-              <Row k="Age range" v={user.preferences ? `${user.preferences.ageMin}–${user.preferences.ageMax}` : '—'} />
-              <Row k="Genders" v={user.preferences?.acceptedGenders.join(', ') ?? '—'} />
-              <Row k="Distance" v={user.preferences ? `${user.preferences.distanceKm} km` : '—'} />
+              <Row k="Age range" v={user.preferences ? `${user.preferences.ageMin}–${user.preferences.ageMax}` : ', '} />
+              <Row k="Genders" v={user.preferences?.acceptedGenders.join(', ') ?? ', '} />
+              <Row k="Distance" v={user.preferences ? `${user.preferences.distanceKm} km` : ', '} />
               <Row k="Cross-region" v={user.preferences?.acceptsCrossRegion ? 'Yes' : 'No'} />
             </dl>
           </CardContent>
@@ -111,7 +111,7 @@ export default async function ProfilePage() {
           <CardContent className="p-6 text-sm">
             <h3 className="font-display text-lg tracking-tight">Account</h3>
             <dl className="mt-4 space-y-2">
-              <Row k="Email" v={user.email ?? '—'} />
+              <Row k="Email" v={user.email ?? ', '} />
               <Row k="Created" v={user.createdAt.toISOString().slice(0, 10)} />
             </dl>
           </CardContent>
@@ -123,7 +123,7 @@ export default async function ProfilePage() {
 }
 
 function fmt(v?: number | null) {
-  return v === null || v === undefined ? '—' : v.toFixed(2);
+  return v === null || v === undefined ? ', ' : v.toFixed(2);
 }
 
 function Pill({ children }: { children: React.ReactNode }) {

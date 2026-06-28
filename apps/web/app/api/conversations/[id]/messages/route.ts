@@ -1,4 +1,4 @@
-// POST /api/conversations/[id]/messages — send a message in a conversation.
+// POST /api/conversations/[id]/messages, send a message in a conversation.
 // Sender must be a participant. If the conversation is at the "opener sent
 // but not yet mutual" state, the recipient's reply transitions the Match to
 // MUTUAL automatically (this is the Hinge model: the reply IS the acceptance).
@@ -71,7 +71,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         });
         becomingMutual = true;
       } else if (conv.match.state !== 'MUTUAL' && conv.match.state !== myAcceptState) {
-        // Edge: I'm initiating but no prior accept from me — set my accept.
+        // Edge: I'm initiating but no prior accept from me, set my accept.
         await tx.match.update({
           where: { id: conv.match.id },
           data: { state: myAcceptState },

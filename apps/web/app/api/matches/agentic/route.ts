@@ -20,7 +20,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const RING_SIZE = 6; // how many agents enter the ring (bounds live-LLM cost)
-const RETURN_N = 5; // curated introductions surfaced to the member
+const RETURN_N = 1; // one intentional, curated introduction per cycle
 
 interface Row {
   id: string;
@@ -208,8 +208,8 @@ export async function POST() {
     profile: {
       displayName: r.row.profile?.displayName ?? 'Member',
       age: r.row.profile ? age(r.row.profile.dateOfBirth) : 30,
-      city: r.row.profile?.city ?? '—',
-      gender: r.row.profile?.gender ?? '—',
+      city: r.row.profile?.city ?? ', ',
+      gender: r.row.profile?.gender ?? ', ',
       bioShort: r.row.profile?.bioShort ?? null,
       mbti: r.row.personality?.mbtiType ?? null,
       communicationStyle: r.row.personality?.communicationStyle ?? null,

@@ -43,7 +43,7 @@ export default function WaitlistPage() {
           kind: 'error',
           message:
             json && typeof json.error === 'object'
-              ? 'Please check the form — some fields look off.'
+              ? 'Please check the form, some fields look off.'
               : 'Something went wrong. Try again in a moment.',
         });
         return;
@@ -62,7 +62,7 @@ export default function WaitlistPage() {
         </Link>
         <h1 className="mt-12 font-display text-4xl tracking-tight">Thank you.</h1>
         <p className="mt-4 text-cream-50/70">
-          Your request has been received. We accept members slowly and intentionally — a curator will
+          Your request has been received. We accept members slowly and intentionally, a curator will
           review your note personally, and we&apos;ll be in touch when there&apos;s a place for you.
         </p>
         <p className="mt-6 text-sm text-cream-50/50">

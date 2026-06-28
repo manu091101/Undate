@@ -3,7 +3,7 @@ import Link from 'next/link';
 export const metadata = {
   title: 'Journal',
   description:
-    'The Undate Journal — essays on intentional dating, attachment, and the quiet work of finding a partner.',
+    'The Undate Journal, essays on intentional dating, attachment, and the quiet work of finding a partner.',
 };
 
 interface Essay {
@@ -80,7 +80,7 @@ export default function JournalPage() {
       <footer className="mt-24 rounded-lg border border-cream-50/10 p-6 text-sm text-cream-50/60">
         <p>
           Want these in your inbox? Undate members receive the Journal monthly. Non-members can request
-          access via the waitlist — <Link href="/waitlist" className="text-gold-700 hover:text-gold-500">join here</Link>.
+          access via the waitlist, <Link href="/waitlist" className="text-gold-700 hover:text-gold-500">join here</Link>.
         </p>
       </footer>
     </main>

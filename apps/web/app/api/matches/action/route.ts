@@ -1,12 +1,12 @@
-// POST /api/matches/action — the demo-critical endpoint.
+// POST /api/matches/action, the demo-critical endpoint.
 //
 // Semantics (from the feature audit, mirroring Hinge's "comment + send"):
 //
-//   PASS    — silent decline. Creates/updates a Match row to PASSED_A/B so this
+//   PASS, silent decline. Creates/updates a Match row to PASSED_A/B so this
 //             person never appears in future drops. No notification to recipient.
-//   SAVE    — keep them in mind. Match row state SAVED_A/B. Surfaced later as
+//   SAVE, keep them in mind. Match row state SAVED_A/B. Surfaced later as
 //             "Saved for later" list (Phase 1 UI).
-//   CONNECT — the user is sending their OWN opener (a real first message). We
+//   CONNECT, the user is sending their OWN opener (a real first message). We
 //             create a Match row with ACCEPTED_A/B, create a Conversation +
 //             two ConversationParticipants, persist the opener as the first
 //             Message. The recipient sees the message in their inbox; the

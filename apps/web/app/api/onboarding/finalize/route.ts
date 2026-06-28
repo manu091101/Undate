@@ -101,7 +101,7 @@ export async function POST(req: Request) {
         modelVersion: 'chatbot-infer-v0.1',
       },
     }),
-    // OnboardingResponse rows — exact keys the matcher reads, plus an audit row.
+    // OnboardingResponse rows, exact keys the matcher reads, plus an audit row.
     prisma.onboardingResponse.upsert({
       where: { userId_questionKey: { userId: session.sub, questionKey: 'values_top5' } },
       create: { userId: session.sub, questionKey: 'values_top5', answer: { picks: p.topValues, schwartz } },

@@ -6,7 +6,7 @@ import { getSession } from '../../../../lib/auth';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// POST /api/onboarding/chat — given the conversation so far, return the bot's
+// POST /api/onboarding/chat, given the conversation so far, return the bot's
 // next question. Hybrid: live Claude when ANTHROPIC_API_KEY is set, scripted
 // fallback otherwise.
 export async function POST(req: Request) {

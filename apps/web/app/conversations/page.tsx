@@ -65,7 +65,7 @@ export default function ConversationsPage() {
         <h1 className="mt-3 font-display text-5xl tracking-tight">Conversations.</h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-cream-50/65">
           Quiet matches and the openers you&apos;ve sent. We never show read receipts or
-          last-active times — by design.
+          last-active times, by design.
         </p>
       </header>
 
@@ -147,7 +147,7 @@ export default function ConversationsPage() {
                       </p>
                     ) : (
                       <p className="mt-2 text-sm italic text-cream-50/40">
-                        No messages yet — write the first one.
+                        No messages yet, write the first one.
                       </p>
                     )}
                   </div>

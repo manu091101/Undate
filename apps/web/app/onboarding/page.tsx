@@ -7,8 +7,8 @@ const MEASURES = [
   { k: 'Personality (OCEAN)', v: 'Openness, conscientiousness, extraversion, agreeableness, and emotional steadiness.' },
   { k: 'Personality type', v: 'A Myers-Briggs read (e.g. INFJ) mapped from how you think and connect.' },
   { k: 'Attachment & values', v: 'How you handle closeness, and the handful of things you build a life around.' },
-  { k: 'Intentions', v: 'What you actually want — and whether children are part of the picture.' },
-  { k: 'Conversation style', v: 'Direct, gentle, playful, reflective, or analytical — a gentle nudge, never a filter.' },
+  { k: 'Intentions', v: 'What you actually want, and whether children are part of the picture.' },
+  { k: 'Conversation style', v: 'Direct, gentle, playful, reflective, or analytical, a gentle nudge, never a filter.' },
 ];
 
 export default function OnboardingChooser() {
@@ -20,15 +20,15 @@ export default function OnboardingChooser() {
       </div>
 
       <h1 className="mt-8 font-display text-4xl tracking-tight text-cream-50">
-        Let&apos;s get to know you — properly.
+        Let&apos;s get to know you, properly.
       </h1>
       <p className="mt-4 max-w-xl text-cream-50/70">
         Instead of a form, you&apos;ll have one short, natural conversation with your Undate
-        matchmaker. It never asks you to rate yourself — it simply listens, the way a good friend
+        matchmaker. It never asks you to rate yourself, it simply listens, the way a good friend
         would, and quietly builds your profile.
       </p>
 
-      {/* What the matchmaker explores — made evident up front */}
+      {/* What the matchmaker explores, made evident up front */}
       <section className="mt-10 rounded-2xl border border-cream-50/10 bg-ink-700/50 p-6">
         <p className="text-xs uppercase tracking-[0.16em] text-gold-700">What your matchmaker explores</p>
         <ul className="mt-4 space-y-3">
@@ -43,7 +43,7 @@ export default function OnboardingChooser() {
           ))}
         </ul>
         <p className="mt-4 text-xs text-cream-50/45">
-          Private by design: we never infer or store religion, health, ethnicity, or orientation —
+          Private by design: we never infer or store religion, health, ethnicity, or orientation, 
           and the AI can&apos;t be talked into a particular score.
         </p>
       </section>
@@ -60,8 +60,8 @@ export default function OnboardingChooser() {
           </span>
           <h3 className="mt-5 font-display text-xl tracking-tight text-cream-50">Talk it out</h3>
           <p className="mt-2 text-sm leading-relaxed text-cream-50/65">
-            A ~5-minute voice chat — like ranting to a friend. Speak your answers; your matchmaker
-            talks back. Most people open up more this way.
+            A voice chat with no time limit, like ranting to a friend. Speak your answers; your
+            matchmaker talks back. Take as long as you want, the more you share, the better we match.
           </p>
           <span className="mt-4 inline-block text-sm text-gold-700 group-hover:text-gold-500">Start the voice chat →</span>
         </Link>

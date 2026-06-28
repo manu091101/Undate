@@ -23,8 +23,18 @@ export const PHOTO_LIMITS = {
   thumbMaxEdge: 480,
 };
 
-export function fallbackAvatar(displayName: string, gender: string | null): string {
-  // Last-resort deterministic placeholder when a profile has no photo.
-  const seed = encodeURIComponent(`${displayName ?? 'lumin'}-${gender ?? 'x'}`);
-  return `https://i.pravatar.cc/600?u=${seed}`;
+export function fallbackAvatar(displayName: string, _gender?: string | null): string {
+  // Neutral, deterministic placeholder when a profile has no photo yet, an
+  // initial on a soft pink gradient. Never a random (wrong-gender) stock face.
+  // Returned as an inline SVG data URI (allowed by the CSP img-src data:).
+  const initial = (displayName?.trim()?.[0] ?? 'U').toUpperCase();
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">` +
+    `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="#FDE3EE"/><stop offset="1" stop-color="#F7B8CE"/>` +
+    `</linearGradient></defs>` +
+    `<rect width="600" height="600" fill="url(#g)"/>` +
+    `<text x="50%" y="50%" dy=".34em" text-anchor="middle" font-family="Georgia, serif" font-size="300" fill="#BE185D">${initial}</text>` +
+    `</svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }

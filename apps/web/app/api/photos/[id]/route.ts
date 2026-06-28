@@ -27,7 +27,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
       const filePath = path.join(process.cwd(), 'public', photo.s3Key.replace(/^\//, ''));
       await unlink(filePath);
     } catch {
-      // Ignore — DB row is gone, file orphan is OK in dev
+      // Ignore, DB row is gone, file orphan is OK in dev
     }
   }
 

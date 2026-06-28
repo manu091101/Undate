@@ -1,4 +1,4 @@
-// GET /api/conversations/[id] — one conversation, every message in order.
+// GET /api/conversations/[id], one conversation, every message in order.
 // Marks the current user's lastReadAt to "now" on each fetch.
 
 import { NextResponse } from 'next/server';
@@ -86,7 +86,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       userId: other?.userId ?? '',
       displayName: otherProfile?.displayName ?? 'Member',
       age,
-      city: otherProfile?.city ?? '—',
+      city: otherProfile?.city ?? ', ',
       bioShort: otherProfile?.bioShort ?? null,
       photoUrl:
         resolvePhotoUrl(other?.user.photos[0]?.s3Key) ??

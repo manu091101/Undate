@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 /**
- * Resilient photograph. Renders a remote stock image (Unsplash/Pexels — already
+ * Resilient photograph. Renders a remote stock image (Unsplash/Pexels, already
  * whitelisted in next.config CSP). On any load error it degrades to a soft pink
  * gradient instead of a broken-image icon, so the layout always looks intentional.
  */

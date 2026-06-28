@@ -9,7 +9,7 @@ interface Props {
   onClose: () => void;
 }
 
-// "It's a quiet match." — restraint over confetti. Lavender + gold radial,
+// "It's a quiet match.", restraint over confetti. Lavender + gold radial,
 // single haptic-equivalent fade, no sound. Per the chat-flow architect agent.
 export default function MutualMatchModal({ target, conversationId, onClose }: Props) {
   return (
@@ -35,7 +35,7 @@ export default function MutualMatchModal({ target, conversationId, onClose }: Pr
           />
         </div>
         <p className="mt-7 text-sm leading-relaxed text-cream-50/75">
-          They replied. The conversation is yours — take your time.
+          They replied. The conversation is yours, take your time.
         </p>
         <div className="mt-8 flex flex-col gap-3">
           <Link href={`/conversations/${conversationId}`}>

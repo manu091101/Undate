@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock Prisma BEFORE importing the route — vitest hoists vi.mock calls.
+// Mock Prisma BEFORE importing the route, vitest hoists vi.mock calls.
 const upsert = vi.fn();
 vi.mock('@lumin/db', () => ({
   prisma: { waitlistEntry: { upsert: (...args: unknown[]) => upsert(...args) } },

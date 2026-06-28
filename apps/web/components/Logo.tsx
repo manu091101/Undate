@@ -1,50 +1,34 @@
-'use client';
-
-import { useState } from 'react';
-
 /**
- * Undate logo. Overlays the owner-supplied artwork at /public/undate-logo.png
- * (the exact pasted image — never recreated). Because the supplied art has a
- * black background, it sits inside a `noir` rounded lockup so it reads as a
- * deliberate logo tile on the white/pink theme. If the file is missing, it
- * degrades to a plain "Undate" wordmark instead of a broken-image icon.
+ * Undate wordmark, rendered in code so it always displays crisply on the
+ * white/pink theme (no image file, no broken-image risk). Faithful to the brand:
+ * a refined serif "undate" with "un" struck through in pink, leaving "date".
  */
 export function Logo({
-  height = 34,
+  height = 28,
   className = '',
-  framed = true,
+  tone = 'default',
 }: {
   height?: number;
   className?: string;
-  framed?: boolean;
+  /** 'default' for the light theme; 'invert' for placing on a dark surface. */
+  tone?: 'default' | 'invert';
 }) {
-  const [errored, setErrored] = useState(false);
-
-  if (errored) {
-    return (
-      <span
-        className={`font-display font-semibold tracking-tight text-cream-50 ${className}`}
-        style={{ fontSize: Math.round(height * 0.72) }}
-      >
-        Undate
-      </span>
-    );
-  }
-
+  const un = tone === 'invert' ? 'text-white/85' : 'text-cream-50/75';
   return (
     <span
-      className={`inline-flex items-center justify-center overflow-hidden ${
-        framed ? 'rounded-2xl bg-noir shadow-soft' : ''
-      } ${className}`}
-      style={framed ? { padding: Math.round(height * 0.18) } : undefined}
+      className={`inline-flex items-baseline font-serif lowercase leading-none tracking-tight ${className}`}
+      style={{ fontSize: height }}
+      aria-label="Undate"
     >
-      <img
-        src="/undate-logo.png"
-        alt="Undate"
-        onError={() => setErrored(true)}
-        className="object-contain"
-        style={{ height, width: 'auto', display: 'block' }}
-      />
+      <span className={`relative ${un}`}>
+        un
+        <span
+          aria-hidden
+          className="absolute left-[-3%] right-[-3%] top-1/2 -translate-y-1/2 rounded-full bg-gold-500"
+          style={{ height: Math.max(1.5, height * 0.05) }}
+        />
+      </span>
+      <span className="text-gold-500">date</span>
     </span>
   );
 }

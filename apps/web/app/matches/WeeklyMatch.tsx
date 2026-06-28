@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Card, CardContent, Sparkle } from '@lumin/ui';
 import OpenerComposer from './OpenerComposer';
 
@@ -42,15 +42,58 @@ const RING_STEPS = [
   'Running mock dates against the pool…',
   'Filtering mismatched vibes & red flags…',
   'Scoring chemistry…',
-  'Curating your introductions…',
+  'Curating your one introduction…',
 ];
+
+// The weekly ritual: introductions land Sunday at 7pm.
+function nextDrop(): Date {
+  const now = new Date();
+  const d = new Date(now);
+  d.setHours(19, 0, 0, 0);
+  const daysUntilSunday = (7 - d.getDay()) % 7; // 0 = Sunday
+  if (daysUntilSunday === 0 && now.getTime() < d.getTime()) {
+    return d; // today, before 7pm
+  }
+  d.setDate(d.getDate() + (daysUntilSunday === 0 ? 7 : daysUntilSunday));
+  return d;
+}
+
+function Countdown() {
+  const [target] = useState(nextDrop);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const ms = Math.max(0, target.getTime() - now);
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  const Cell = ({ v, label }: { v: number; label: string }) => (
+    <div className="flex flex-col items-center">
+      <span className="font-display text-2xl tabular-nums text-cream-50">{String(v).padStart(2, '0')}</span>
+      <span className="text-[10px] uppercase tracking-[0.14em] text-cream-50/45">{label}</span>
+    </div>
+  );
+  return (
+    <div className="flex items-center gap-3">
+      <Cell v={d} label="days" />
+      <span className="text-cream-50/30">:</span>
+      <Cell v={h} label="hrs" />
+      <span className="text-cream-50/30">:</span>
+      <Cell v={m} label="min" />
+      <span className="text-cream-50/30">:</span>
+      <Cell v={s} label="sec" />
+    </div>
+  );
+}
 
 export default function WeeklyMatch() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [data, setData] = useState<AgenticResponse | null>(null);
   const [step, setStep] = useState(0);
-  const [idx, setIdx] = useState(0);
-  const [convos, setConvos] = useState<Record<string, Convo>>({});
+  const [convo, setConvo] = useState<Convo>({ kind: 'none' });
   const [showTranscript, setShowTranscript] = useState(false);
 
   async function runRing() {
@@ -60,23 +103,15 @@ export default function WeeklyMatch() {
     try {
       const res = await fetch('/api/matches/agentic', { method: 'POST' });
       const j = (await res.json()) as AgenticResponse;
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 700));
       clearInterval(ticker);
       if (!res.ok) return setPhase('error');
       setData(j);
-      setIdx(0);
       setPhase(j.matches.length > 0 ? 'revealed' : 'empty');
     } catch {
       clearInterval(ticker);
       setPhase('error');
     }
-  }
-
-  function convoFor(id: string): Convo {
-    return convos[id] ?? { kind: 'none' };
-  }
-  function setConvo(id: string, c: Convo) {
-    setConvos((cur) => ({ ...cur, [id]: c }));
   }
 
   async function sendOpener(m: AgenticMatch, text: string) {
@@ -87,7 +122,7 @@ export default function WeeklyMatch() {
     });
     if (!res.ok) throw new Error('Could not send opener. Try again.');
     const j = (await res.json()) as { mutual: boolean; conversationId: string };
-    setConvo(m.userId, j.mutual && j.conversationId ? { kind: 'mutual', id: j.conversationId } : { kind: 'sent' });
+    setConvo(j.mutual && j.conversationId ? { kind: 'mutual', id: j.conversationId } : { kind: 'sent' });
   }
 
   if (phase === 'idle') {
@@ -95,15 +130,15 @@ export default function WeeklyMatch() {
       <section className="mb-12 rounded-2xl border border-gold-500/30 bg-gradient-to-br from-gold-500/10 to-sparkle-500/[0.06] p-8 text-center">
         <p className="text-xs uppercase tracking-[0.18em] text-gold-700">The Agentic Matching Ring</p>
         <h2 className="mt-3 font-display text-3xl tracking-tight text-cream-50">
-          Curated introductions — chosen by your agent.
+          One introduction, chosen by your agent.
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-cream-50/70">
-          Your AI agent runs high-speed mock dates against the pool using a real compatibility
-          algorithm — attachment, values, temperament, conversation style and more — then surfaces the
-          people worth meeting, with a debrief of why you clicked. The humans take it from there.
+          Your AI agent runs mock dates against the pool using a real compatibility algorithm,
+          weighing attachment, values, temperament, conversation style and more, then surfaces the
+          single person worth meeting this week. The humans take it from there.
         </p>
         <Button variant="gold" size="lg" className="mt-6" onClick={runRing}>
-          Run this week&apos;s ring →
+          Reveal this week&apos;s match →
         </Button>
       </section>
     );
@@ -124,7 +159,7 @@ export default function WeeklyMatch() {
   if (phase === 'error') {
     return (
       <section className="mb-12 rounded-2xl border border-blush-500/40 bg-blush-500/5 p-8 text-sm">
-        <p className="text-cream-50/80">The ring couldn&apos;t run — finish onboarding first, then try again.</p>
+        <p className="text-cream-50/80">The ring couldn&apos;t run. Finish onboarding first, then try again.</p>
         <Button variant="gold" size="sm" className="mt-4" onClick={runRing}>Try again</Button>
       </section>
     );
@@ -132,59 +167,41 @@ export default function WeeklyMatch() {
 
   if (phase === 'empty' || !data || data.matches.length === 0) {
     return (
-      <section className="mb-12 rounded-2xl border border-cream-50/10 p-8 text-sm text-cream-50/70">
-        No one cleared the ring in your region this week. Widen your age range, or come back for the
-        next drop.
+      <section className="mb-12 rounded-2xl border border-cream-50/10 p-8 text-center">
+        <p className="text-sm text-cream-50/70">
+          No one cleared the ring in your region this week. Your agent will keep looking.
+        </p>
+        <div className="mt-5 flex flex-col items-center gap-2">
+          <p className="text-xs uppercase tracking-[0.16em] text-gold-700">Next introduction in</p>
+          <Countdown />
+        </div>
       </section>
     );
   }
 
-  const total = data.matches.length;
-  const m = data.matches[idx]!;
-  const convo = convoFor(m.userId);
+  const m = data.matches[0]!;
 
   return (
     <>
       <section className="mb-12">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-gold-700">
-              This week&apos;s introductions · {data.weekId}
-            </p>
+            <p className="text-xs uppercase tracking-[0.18em] text-gold-700">This week&apos;s introduction · {data.weekId}</p>
             <p className="mt-1 text-xs text-cream-50/45">
-              Your agent ran {data.ran} mock {data.ran === 1 ? 'date' : 'dates'} and curated {total} for you.
+              Your agent ran {data.ran} mock {data.ran === 1 ? 'date' : 'dates'} and chose one.
             </p>
           </div>
-          {/* pipeline nav */}
-          <div className="flex items-center gap-2">
-            <NavBtn disabled={idx === 0} onClick={() => { setIdx((i) => Math.max(0, i - 1)); setShowTranscript(false); }}>←</NavBtn>
-            <span className="text-xs text-cream-50/55">{idx + 1} / {total}</span>
-            <NavBtn disabled={idx === total - 1} onClick={() => { setIdx((i) => Math.min(total - 1, i + 1)); setShowTranscript(false); }}>→</NavBtn>
+          <div className="rounded-xl border border-cream-50/10 bg-ink-700/50 px-4 py-2">
+            <p className="mb-1 text-[10px] uppercase tracking-[0.14em] text-cream-50/45">Next introduction in</p>
+            <Countdown />
           </div>
         </div>
 
-        {/* dots */}
-        <div className="mt-3 flex gap-1.5">
-          {data.matches.map((mm, i) => (
-            <button
-              key={mm.userId}
-              type="button"
-              aria-label={`Introduction ${i + 1}`}
-              onClick={() => { setIdx(i); setShowTranscript(false); }}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${
-                i === idx ? 'bg-gold-500' : convoFor(mm.userId).kind === 'sent' || convoFor(mm.userId).kind === 'mutual' ? 'bg-sage-500/60' : 'bg-cream-50/15'
-              }`}
-            />
-          ))}
-        </div>
-
-        <Card className="mt-4 overflow-hidden">
+        <Card className="overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-[5fr_6fr]">
             <div className="relative aspect-[4/5] bg-ink-700">
               <img src={m.profile.primaryPhoto} alt={m.profile.displayName} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
-              {idx === 0 ? (
-                <div className="absolute left-4 top-4 rounded-full bg-gold-500/90 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white">Top match</div>
-              ) : null}
+              <div className="absolute left-4 top-4 rounded-full bg-gold-500/90 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white">Your match</div>
               <div className="absolute bottom-4 right-4 rounded-full border border-gold-500/60 bg-ink-900/80 px-3 py-1.5 text-xs font-mono text-gold-300 backdrop-blur">
                 {Math.round(m.chemistry * 100)}% chemistry
               </div>
@@ -240,25 +257,18 @@ export default function WeeklyMatch() {
 
               {convo.kind === 'mutual' ? (
                 <Link href={`/conversations/${convo.id}`} className="rounded-md border border-gold-500/50 bg-gold-500/10 px-4 py-3 text-sm text-cream-50 hover:bg-gold-500/15">
-                  ✦ It&apos;s mutual — open the conversation →
+                  ✦ It&apos;s mutual, open the conversation →
                 </Link>
               ) : convo.kind === 'sent' ? (
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm italic text-cream-50/60">Opener sent to {m.profile.displayName}.</p>
-                  {idx < total - 1 ? (
-                    <Button variant="secondary" size="sm" onClick={() => { setIdx(idx + 1); setShowTranscript(false); }}>Next →</Button>
-                  ) : null}
-                </div>
+                <p className="text-sm italic text-cream-50/60">
+                  Opener sent to {m.profile.displayName}. Now it&apos;s just the two of you. Your next introduction arrives Sunday.
+                </p>
               ) : (
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button variant="gold" size="lg" onClick={() => setConvo(m.userId, { kind: 'composing' })}>
+                <div className="flex items-center gap-3">
+                  <Button variant="gold" size="lg" onClick={() => setConvo({ kind: 'composing' })}>
                     Start the conversation →
                   </Button>
-                  {idx < total - 1 ? (
-                    <button type="button" onClick={() => { setIdx(idx + 1); setShowTranscript(false); }} className="text-sm text-cream-50/55 hover:text-cream-50/90">
-                      Skip for now →
-                    </button>
-                  ) : null}
+                  <span className="text-xs text-cream-50/45">One match. Make it count.</span>
                 </div>
               )}
             </CardContent>
@@ -275,24 +285,11 @@ export default function WeeklyMatch() {
             bioShort: m.profile.bioShort,
             primaryPhoto: m.profile.primaryPhoto,
           }}
-          onCancel={() => setConvo(m.userId, { kind: 'none' })}
+          onCancel={() => setConvo({ kind: 'none' })}
           onSend={(text) => sendOpener(m, text)}
         />
       ) : null}
     </>
-  );
-}
-
-function NavBtn({ children, disabled, onClick }: { children: React.ReactNode; disabled: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-full border border-cream-50/15 text-cream-50/70 transition-colors hover:border-gold-500/60 disabled:opacity-30"
-    >
-      {children}
-    </button>
   );
 }
 

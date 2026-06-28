@@ -16,7 +16,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Undate — Intentional matchmaking',
+    default: 'Undate, Intentional matchmaking',
     template: '%s · Undate',
   },
   description:

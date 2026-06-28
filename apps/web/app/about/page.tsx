@@ -3,7 +3,7 @@ import { Button } from '@lumin/ui';
 
 export const metadata = {
   title: 'About',
-  description: 'What Undate is — and what it deliberately is not.',
+  description: 'What Undate is, and what it deliberately is not.',
 };
 
 export default function AboutPage() {
@@ -13,18 +13,18 @@ export default function AboutPage() {
       <h1 className="mt-10 font-display text-5xl tracking-tight">About Undate.</h1>
       <p className="mt-6 max-w-2xl text-lg leading-relaxed text-cream-50/80">
         Undate is a premium, intentional matchmaking platform for adults who are tired of swiping. We
-        do not promise more. We promise <em>fewer</em>, better introductions — a small handful,
+        do not promise more. We promise <em>fewer</em>, better introductions, a small handful,
         drawn from a curator-reviewed pool of verified members.
       </p>
 
       <section className="mt-14 space-y-10">
         <Block
           title="What we are."
-          body="A small, deliberately slow product. Onboarding takes time. Matches arrive on a schedule. Conversations are private and unmetricated. Our priority is helping you have a small number of real-life dates with people who could realistically be your partner — not maximising your screen time."
+          body="A small, deliberately slow product. Onboarding takes time. Matches arrive on a schedule. Conversations are private and unmetricated. Our priority is helping you have a small number of real-life dates with people who could realistically be your partner, not maximising your screen time."
         />
         <Block
           title="What we are not."
-          body="We are not a swipe app. We do not show you the number of people who liked your profile. We do not gamify your loneliness. We do not pretend an algorithm can predict who you'll fall in love with — pre-meeting data explains almost none of long-term relationship satisfaction in the research. What our model can do is filter for hard incompatibilities (children plans, life goals, attachment-style traps) so the curator's time is well spent."
+          body="We are not a swipe app. We do not show you the number of people who liked your profile. We do not gamify your loneliness. We do not pretend an algorithm can predict who you'll fall in love with, pre-meeting data explains almost none of long-term relationship satisfaction in the research. What our model can do is filter for hard incompatibilities (children plans, life goals, attachment-style traps) so the curator's time is well spent."
         />
         <Block
           title="Who we are not for."

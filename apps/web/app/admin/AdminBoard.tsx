@@ -45,7 +45,7 @@ function intentionLabel(i?: string): string {
     case 'EXPLORING':
       return 'Exploring';
     default:
-      return '—';
+      return ', ';
   }
 }
 
@@ -116,7 +116,7 @@ export function AdminBoard({ waiting, pending }: { waiting: WaitlistRow[]; pendi
                   <div>
                     <p className="font-display text-lg text-cream-50">{w.email}</p>
                     <p className="mt-1 text-xs uppercase tracking-[0.14em] text-cream-50/45">
-                      {w.city ?? 'City n/a'} · {w.answers?.ageRange ?? '—'} · {intentionLabel(w.answers?.intention)}
+                      {w.city ?? 'City n/a'} · {w.answers?.ageRange ?? ', '} · {intentionLabel(w.answers?.intention)}
                     </p>
                   </div>
                   <Button
@@ -130,13 +130,13 @@ export function AdminBoard({ waiting, pending }: { waiting: WaitlistRow[]; pendi
                 </div>
                 {w.answers?.lookingFor ? (
                   <p className="mt-4 text-sm text-cream-50/75">
-                    <span className="text-cream-50/45">Hoping to meet — </span>
+                    <span className="text-cream-50/45">Hoping to meet, </span>
                     {w.answers.lookingFor}
                   </p>
                 ) : null}
                 {w.answers?.whyJoin ? (
                   <p className="mt-2 text-sm text-cream-50/75">
-                    <span className="text-cream-50/45">Why — </span>
+                    <span className="text-cream-50/45">Why, </span>
                     {w.answers.whyJoin}
                   </p>
                 ) : null}

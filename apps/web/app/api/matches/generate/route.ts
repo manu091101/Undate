@@ -204,8 +204,8 @@ export async function GET() {
       profile: {
         displayName: row.profile?.displayName ?? 'Member',
         age: yearsBetween(row.profile!.dateOfBirth),
-        city: row.profile?.city ?? '—',
-        gender: row.profile?.gender ?? '—',
+        city: row.profile?.city ?? ', ',
+        gender: row.profile?.gender ?? ', ',
         bioShort: row.profile?.bioShort ?? null,
         photos: row.photos
           .map((p) => resolvePhotoUrl(p.s3Key))

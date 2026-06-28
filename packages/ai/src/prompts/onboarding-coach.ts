@@ -17,34 +17,48 @@ export const OnboardingTurnSchema = z.object({
 });
 export type OnboardingTurn = z.infer<typeof OnboardingTurnSchema>;
 
-// Deterministic fallback script — one warm question per "signal zone". Used when
+// Deterministic fallback script, one warm question per "signal zone". Used when
 // ANTHROPIC_API_KEY is absent or a live call fails, so onboarding always works.
 const SCRIPT: string[] = [
-  // 0 — opening: extraversion, lifestyle pace, openness
-  "Hi — I'm your Undate matchmaker. Before I introduce you to anyone, I'd love to get a real feel for you — no right answers here. To start: what does a genuinely good weekend look like for you these days?",
-  // 1 — draw: values, openness, intention hints
+  // 0, opening: extraversion, lifestyle pace, openness
+  "Hi, I'm your Undate matchmaker. Before I introduce you to anyone, I'd love to get a real feel for you, no right answers here. To start: what does a genuinely good weekend look like for you these days?",
+  // 1, draw: values, openness, intention hints
   'I like that. When you meet someone and feel a real pull toward them, what is it usually about them that does it?',
-  // 2 — repair: attachment, neuroticism, conversation style
-  "That's helpful. Here's a slightly deeper one — when something feels off between you and someone you're close to, what do you actually tend to do in the moment?",
-  // 3 — conscientiousness / reliability
-  "Good to know. When you commit to something that matters — a plan, a promise, a person — how do you tend to follow through when life gets busy?",
-  // 4 — matters: Schwartz values
-  "Thank you for being honest. What's something that's been mattering to you a lot lately — something you'd really want a partner to understand about you?",
-  // 5 — horizon: intention, kids
-  'When you picture the next few years of your life, what are you actually hoping to build — and does that picture include a family?',
-  // 6 — lighter close: humour, openness, novelty
+  // 2, repair: attachment, neuroticism, conversation style
+  "That's helpful. Here's a slightly deeper one, when something feels off between you and someone you're close to, what do you actually tend to do in the moment?",
+  // 3, conscientiousness / reliability
+  "Good to know. When you commit to something that matters, a plan, a promise, a person, how do you tend to follow through when life gets busy?",
+  // 4, matters: Schwartz values
+  "Thank you for being honest. What's something that's been mattering to you a lot lately, something you'd really want a partner to understand about you?",
+  // 5, horizon: intention, kids
+  'When you picture the next few years of your life, what are you actually hoping to build, and does that picture include a family?',
+  // 6, lighter close: humour, openness, novelty
   'Last one, and lighter: what reliably makes you laugh, and when did you last surprise yourself by trying something new?',
 ];
 
+// Gentle open-ended follow-ups for members who want to keep talking past the
+// core questions. Cycled so the conversation never repeats or dead-ends.
+const FOLLOWUPS: string[] = [
+  'I love that. What else would you want someone to really understand about you?',
+  'That tells me a lot. Is there a story that sums up who you are at your best?',
+  'Beautiful. What does feeling truly at ease with someone look like for you?',
+  'Tell me more, what is something small that makes your day better?',
+  'And what is something you are still figuring out, or working on?',
+];
+
 export function scriptedTurn(turnIndex: number): OnboardingTurn {
-  const idx = Math.max(0, Math.min(turnIndex, SCRIPT.length - 1));
-  return { message: SCRIPT[idx]!, done: idx >= SCRIPT.length - 1 };
+  if (turnIndex < SCRIPT.length) {
+    return { message: SCRIPT[turnIndex]!, done: turnIndex >= SCRIPT.length - 1 };
+  }
+  // Past the core script: keep going with rotating warm follow-ups.
+  const f = FOLLOWUPS[(turnIndex - SCRIPT.length) % FOLLOWUPS.length]!;
+  return { message: f, done: true };
 }
 
 const SYSTEM = `You are the Undate matchmaker: warm, curious, unhurried, a little witty.
 You are having a short getting-to-know-you conversation with a new member.
 
-Your goal is to gently learn — WITHOUT ever asking directly — their personality
+Your goal is to gently learn, WITHOUT ever asking directly, their personality
 (Big Five), how they handle closeness and conflict (attachment style), how they
 communicate, what they value, and what they're looking for (intentions, children).
 
@@ -60,7 +74,7 @@ Rules:
   follow through on commitments when busy (reliability); what matters to them
   lately (values); what they want to build (and family); and one lighter question
   about humour or trying new things.
-- Probe for real signal but stay warm — let what they say shape your next question.
+- Probe for real signal but stay warm, let what they say shape your next question.
 - Set "done" to true on your final question, once roughly seven exchanges are done.
 - Output strict JSON only: {"message": string, "done": boolean}.`;
 
@@ -78,7 +92,7 @@ export async function generateOnboardingTurn(
       .map((m) => `${m.role === 'assistant' ? 'You' : 'Member'}: ${m.content}`)
       .join('\n');
     const user = `Conversation so far (turn ${input.turnIndex}, aim for ~6 questions total):\n${
-      convo || '(no messages yet — open the conversation)'
+      convo || '(no messages yet, open the conversation)'
     }\n\nReturn the next turn as JSON.`;
 
     const resp = await client.messages.create({

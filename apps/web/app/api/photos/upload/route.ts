@@ -84,7 +84,7 @@ export async function POST(req: Request) {
       height,
       orderIdx: existing,
       isPrimary,
-      moderationStatus: 'APPROVED', // MVP — Phase 1 routes through Rekognition + queue
+      moderationStatus: 'APPROVED', // MVP, Phase 1 routes through Rekognition + queue
     },
   });
 

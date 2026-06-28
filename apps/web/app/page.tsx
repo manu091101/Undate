@@ -4,18 +4,18 @@ import { Logo } from '../components/Logo';
 import { Photo } from '../components/Photo';
 
 const HERO_PHOTOS = [
-  'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=1000&q=80',
+  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=700&q=80',
+  'https://images.unsplash.com/photo-1502323777036-f29e3972d82f?auto=format&fit=crop&w=700&q=80',
 ] as const;
 
 const GALLERY = [
+  { src: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=600&q=80', alt: 'A golden evening' },
   { src: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=600&q=80', alt: 'A first coffee' },
   { src: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80', alt: 'A long walk' },
   { src: 'https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?auto=format&fit=crop&w=600&q=80', alt: 'Laughing over dinner' },
-  { src: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80', alt: 'Someone worth meeting' },
-  { src: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80', alt: 'A quiet evening' },
-  { src: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=600&q=80', alt: 'A real connection' },
+  { src: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80', alt: 'A quiet night' },
+  { src: 'https://images.unsplash.com/photo-1518621736915-f3b1c41bfd00?auto=format&fit=crop&w=600&q=80', alt: 'A real connection' },
 ];
 
 const STEPS = [
@@ -27,28 +27,28 @@ const STEPS = [
   {
     n: '02',
     title: 'Meet your matchmaker',
-    body: 'A short, natural conversation with our AI matchmaker — no forms to fill. It listens for how you connect, not just what you like.',
+    body: 'A short, natural conversation by voice or text. It learns how you connect and what you actually want, no forms to fill.',
   },
   {
     n: '03',
-    title: 'Receive introductions',
-    body: 'A small handful of curated introductions, each with an honest note on why the two of you might fit.',
+    title: 'Your agent runs the room',
+    body: 'Your AI agent quietly has mock conversations with other members’ agents, feeling out chemistry and filtering the mismatches.',
   },
   {
     n: '04',
-    title: 'Meet in real life',
-    body: 'Start a private conversation, then meet. The product ends where the date begins — that is the point.',
+    title: 'Meet your match',
+    body: 'One curated introduction, with an honest note on why the two of you clicked. Then the humans take over.',
   },
 ];
 
 const FAQ = [
   {
     q: 'Is this a swiping app?',
-    a: 'No. There is no endless feed, no like counts, no leaderboards. You receive a small number of considered introductions and nothing else competes for your attention.',
+    a: 'No. There is no endless feed, no like counts, no leaderboards. You receive one considered introduction at a time and nothing else competes for your attention.',
   },
   {
-    q: 'How does the matchmaker work?',
-    a: 'You have a relaxed conversation with an AI matchmaker that gently learns your personality, the way you communicate, and what you actually want. A human curator reviews every introduction before it reaches you.',
+    q: 'What do you mean by AI agents?',
+    a: 'After your onboarding, we build a private AI persona of you. Before any introduction, your agent has short mock conversations with other members’ agents in the background, judging real chemistry, so the match you receive has already been pressure-tested.',
   },
   {
     q: 'Who can join?',
@@ -97,8 +97,9 @@ export default function MarketingPage() {
             worth <span className="text-gold-500">undating</span> for.
           </h1>
           <p className="mt-6 max-w-md text-lg leading-relaxed text-cream-50/70">
-            A quieter kind of matchmaking. A handful of curated introductions, chosen by people who
-            actually pay attention — not an algorithm chasing your screen time.
+            A quieter kind of matchmaking. Your AI agent does the searching, so you receive one
+            considered introduction at a time, chosen with real attention, never an algorithm chasing
+            your screen time.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-4">
             <Link href="/waitlist">
@@ -119,11 +120,7 @@ export default function MarketingPage() {
 
         <div className="relative">
           <div className="grid grid-cols-2 gap-4">
-            <Photo
-              src={HERO_PHOTOS[0]}
-              alt="A couple, at ease"
-              className="col-span-2 h-64 w-full sm:h-72"
-            />
+            <Photo src={HERO_PHOTOS[0]} alt="A couple at golden hour" className="col-span-2 h-72 w-full sm:h-80" />
             <Photo src={HERO_PHOTOS[1]} alt="Worth meeting" className="h-44 w-full sm:h-52" />
             <Photo src={HERO_PHOTOS[2]} alt="A real smile" className="h-44 w-full sm:h-52" />
           </div>
@@ -151,16 +148,65 @@ export default function MarketingPage() {
         </div>
       </section>
 
+      {/* Agents meet before you do */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="grid items-center gap-12 md:grid-cols-2">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-gold-700">The Agentic Matching Ring</p>
+            <h2 className="mt-3 font-display text-3xl tracking-tight text-cream-50 md:text-4xl">
+              Your agent meets theirs, before you ever do.
+            </h2>
+            <p className="mt-5 max-w-md leading-relaxed text-cream-50/70">
+              From your conversation we build a private AI persona of you. Each cycle, it steps into a
+              quiet matchmaking ring and holds short mock conversations with other members&apos; agents,
+              hundreds of tiny first dates run in the background.
+            </p>
+            <p className="mt-4 max-w-md leading-relaxed text-cream-50/70">
+              It filters out the mismatched vibes and the quiet red flags, then surfaces the one person
+              worth your evening, with a debrief of exactly why your two agents clicked. Only then do
+              the humans take over.
+            </p>
+          </div>
+
+          {/* mock agent-to-agent conversation */}
+          <div className="rounded-2xl border border-cream-50/10 bg-ink-700/50 p-6 shadow-soft">
+            <p className="mb-4 text-center text-xs uppercase tracking-[0.16em] text-cream-50/45">
+              A mock date, run by two agents
+            </p>
+            <div className="space-y-3">
+              <div className="flex justify-start">
+                <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-ink-900 px-4 py-2.5 text-sm text-cream-50/85">
+                  <span className="mb-0.5 block text-[10px] uppercase tracking-wider text-gold-700">Your agent</span>
+                  She is INFJ, slow Sundays, secure. Wants a real partner. What is yours actually after?
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-gold-500 px-4 py-2.5 text-sm text-white">
+                  <span className="mb-0.5 block text-[10px] uppercase tracking-wider text-white/70">Their agent</span>
+                  Same, and he lights up about family. They would talk through dinner.
+                </div>
+              </div>
+              <div className="flex justify-start">
+                <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-ink-900 px-4 py-2.5 text-sm text-cream-50/85">
+                  Agreed. Strong on attachment and values. I would put them in front of each other.
+                </div>
+              </div>
+            </div>
+            <p className="mt-4 text-center text-xs text-cream-50/45">92% chemistry · introduced</p>
+          </div>
+        </div>
+      </section>
+
       {/* Value props */}
-      <section className="mx-auto grid max-w-6xl gap-10 px-6 py-20 md:grid-cols-3">
+      <section className="mx-auto grid max-w-6xl gap-10 px-6 pb-20 md:grid-cols-3">
         {[
           {
             title: 'Hand curated',
-            body: 'Every introduction is reviewed by a real matchmaker. Our AI helps them; it never replaces them.',
+            body: 'Every introduction is reviewed by a real matchmaker. Our AI helps them, it never replaces them.',
           },
           {
             title: 'Personality first',
-            body: 'We match on how you think, communicate, and connect — your intentions, not your filters.',
+            body: 'We match on how you think, communicate and connect, on your intentions, not your filters.',
           },
           {
             title: 'Private by design',

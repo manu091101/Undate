@@ -1,4 +1,4 @@
-// GET /api/conversations — list every conversation the current user is part
+// GET /api/conversations, list every conversation the current user is part
 // of, with the other participant + last message preview. Sort: most recent
 // activity first.
 
@@ -88,7 +88,7 @@ export async function GET() {
         userId: other?.id ?? '',
         displayName: otherProfile?.displayName ?? 'Member',
         age,
-        city: otherProfile?.city ?? '—',
+        city: otherProfile?.city ?? ', ',
         photoUrl:
           resolvePhotoUrl(other?.photos[0]?.s3Key) ??
           fallbackAvatar(otherProfile?.displayName ?? 'm', otherProfile?.gender ?? null),

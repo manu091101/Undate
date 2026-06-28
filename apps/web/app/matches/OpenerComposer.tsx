@@ -21,12 +21,12 @@ const SCAFFOLDS = [
   'Suggest something concrete to do',
 ];
 
-// Three "starter scaffolds" — copy that the user EDITS, not auto-sends.
+// Three "starter scaffolds", copy that the user EDITS, not auto-sends.
 // Undate's hard rule: AI may suggest, the human always presses send.
 const SUGGESTIONS = (target: Props['target']) => [
-  `${target.displayName} — saw that you live in ${target.city}. I'm always looking for a good place there; what's the one you'd take a friend to first?`,
+  `${target.displayName}, saw that you live in ${target.city}. I'm always looking for a good place there; what's the one you'd take a friend to first?`,
   `${target.displayName}, your bio made me smile. What's been the most surprising thing about this year for you?`,
-  `Bold pitch, ${target.displayName} — coffee at Tiong Bahru Bakery this Sunday morning if you're around?`,
+  `Bold pitch, ${target.displayName}, coffee at Tiong Bahru Bakery this Sunday morning if you're around?`,
 ];
 
 export default function OpenerComposer({ target, onCancel, onSend }: Props) {
@@ -100,7 +100,7 @@ export default function OpenerComposer({ target, onCancel, onSend }: Props) {
 
         <div className="px-6 pt-5">
           <p className="text-xs text-cream-50/60 leading-relaxed">
-            Undate never sends for you. Write something real — they'll see your face and your words,
+            Undate never sends for you. Write something real, they'll see your face and your words,
             nothing else. Aim for two sentences.
           </p>
         </div>
@@ -123,7 +123,7 @@ export default function OpenerComposer({ target, onCancel, onSend }: Props) {
 
         <div className="px-6 mt-4">
           <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] text-sparkle-500">
-            <Sparkle size={11} /> Need a scaffold? (Tap to fill — you edit before sending.)
+            <Sparkle size={11} /> Need a scaffold? (Tap to fill, you edit before sending.)
           </p>
           <div className="mt-3 flex flex-col gap-2">
             {SUGGESTIONS(target).map((s, i) => (

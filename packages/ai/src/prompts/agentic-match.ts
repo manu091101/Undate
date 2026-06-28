@@ -71,14 +71,14 @@ export function mockDateFallback(a: AgentPersona, b: AgentPersona, hints: AxisHi
   const sparks: string[] = [];
   if (strong[0]) sparks.push(`Aligned on ${AXIS_LABEL[strong[0][0]]}`);
   if (shared) sparks.push(`Both care about ${shared.toLowerCase()}`);
-  if (a.mbti && b.mbti) sparks.push(`${a.mbti} meets ${b.mbti} — complementary wiring`);
+  if (a.mbti && b.mbti) sparks.push(`${a.mbti} meets ${b.mbti}, complementary wiring`);
   if (strong[1] && sparks.length < 4) sparks.push(`Also click on ${AXIS_LABEL[strong[1][0]]}`);
   if (sparks.length === 0) sparks.push('Easy, curious back-and-forth');
 
   const frictions: string[] = [];
   if (weak[0]) frictions.push(`Worth checking: ${AXIS_LABEL[weak[0][0]]}`);
   if (a.communicationStyle && b.communicationStyle && a.communicationStyle !== b.communicationStyle) {
-    frictions.push(`Different rhythms — ${a.communicationStyle.toLowerCase()} vs ${b.communicationStyle.toLowerCase()}`);
+    frictions.push(`Different rhythms, ${a.communicationStyle.toLowerCase()} vs ${b.communicationStyle.toLowerCase()}`);
   }
 
   const debrief = shared
@@ -86,7 +86,7 @@ export function mockDateFallback(a: AgentPersona, b: AgentPersona, hints: AxisHi
     : `Your agents found ${strong[0] ? AXIS_LABEL[strong[0][0]] : 'a genuine'} common ground and the conversation flowed.`;
 
   const transcript: MockDate['transcript'] = [
-    { speaker: 'A', line: `${a.name}'s agent: "${a.name} is ${a.mbti ?? 'thoughtful'} — ${aBio}. What's ${b.name} actually looking for?"` },
+    { speaker: 'A', line: `${a.name}'s agent: "${a.name} is ${a.mbti ?? 'thoughtful'}, ${aBio}. What's ${b.name} actually looking for?"` },
     { speaker: 'B', line: `${b.name}'s agent: "${b.name} wants ${(b.intention ?? 'something real').toLowerCase().replace(/_/g, ' ')}${shared ? `, and lights up about ${shared.toLowerCase()}` : ''}. Sounds like there's overlap."` },
     { speaker: 'A', line: `${a.name}'s agent: "There is. ${strong[0] ? `They'd line up on ${AXIS_LABEL[strong[0][0]]}.` : 'The energy fits.'} ${weak[0] ? `I'd just flag ${AXIS_LABEL[weak[0][0]]}.` : ''}"` },
     { speaker: 'B', line: `${b.name}'s agent: "Agreed. I'd put them in front of each other. Chemistry's there."` },

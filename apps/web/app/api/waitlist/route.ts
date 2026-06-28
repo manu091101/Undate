@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { WaitlistJoinInput } from '@lumin/shared';
 import { prisma } from '@lumin/db';
 
-// Node runtime — Prisma can't run on Edge. Force this so deploys don't surprise us.
+// Node runtime, Prisma can't run on Edge. Force this so deploys don't surprise us.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 

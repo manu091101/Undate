@@ -55,7 +55,7 @@ export function OnboardingConversation({ mode }: { mode: 'text' | 'voice' }) {
   const [voiceGender, setVoiceGender] = useState<'female' | 'male'>('female');
 
   // prefs + photos
-  const [accepted, setAccepted] = useState<string[]>(['MAN']);
+  const [accepted, setAccepted] = useState<string[]>([]);
   const [ageMin, setAgeMin] = useState(28);
   const [ageMax, setAgeMax] = useState(40);
   const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
@@ -155,14 +155,18 @@ export function OnboardingConversation({ mode }: { mode: 'text' | 'voice' }) {
       const history = [...messages, { role: 'user' as const, content: trimmed }];
       setMessages(history);
       setInput('');
-      if (awaitingFinal) {
-        setPhase('prefs');
-        return;
-      }
+      // No hard cap: the matchmaker keeps the conversation going for as long as
+      // the member wants. They end it themselves with the "I'm ready" button.
       await nextTurn(history);
     },
-    [messages, thinking, awaitingFinal, nextTurn],
+    [messages, thinking, nextTurn],
   );
+
+  function finishConversation() {
+    if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+    if (listening) stopListening();
+    setPhase('prefs');
+  }
 
   // ── STT ─────────────────────────────────────────────────────────────────
   function startListening() {
@@ -172,7 +176,7 @@ export function OnboardingConversation({ mode }: { mode: 'text' | 'voice' }) {
       (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognitionLike }).webkitSpeechRecognition;
     if (!Ctor) {
       setVoiceSupported(false);
-      setMicError('Voice input isn’t supported in this browser — please type your answer, or use Chrome.');
+      setMicError('Voice input isn’t supported in this browser, please type your answer, or use Chrome.');
       return;
     }
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
@@ -195,9 +199,9 @@ export function OnboardingConversation({ mode }: { mode: 'text' | 'voice' }) {
         if (ev?.error === 'not-allowed' || ev?.error === 'service-not-allowed') {
           setMicError('Microphone access is blocked. Allow it in your browser’s address bar, then tap the mic again.');
         } else if (ev?.error === 'no-speech') {
-          setMicError('I didn’t catch that — tap the mic and try again.');
+          setMicError('I didn’t catch that, tap the mic and try again.');
         } else if (ev?.error !== 'aborted') {
-          setMicError('Voice input hit a snag — you can type your answer instead.');
+          setMicError('Voice input hit a snag, you can type your answer instead.');
         }
       };
       rec.onend = () => setListening(false);
@@ -206,7 +210,7 @@ export function OnboardingConversation({ mode }: { mode: 'text' | 'voice' }) {
       rec.start();
     } catch {
       setListening(false);
-      setMicError('Couldn’t start the microphone — type your answer instead.');
+      setMicError('Couldn’t start the microphone, type your answer instead.');
     }
   }
 
@@ -264,6 +268,8 @@ export function OnboardingConversation({ mode }: { mode: 'text' | 'voice' }) {
 
   const questionsAsked = messages.filter((m) => m.role === 'assistant').length;
   const progress = Math.min(questionsAsked, TOTAL);
+  const answersGiven = messages.filter((m) => m.role === 'user').length;
+  const canFinish = answersGiven >= 4 || awaitingFinal;
   function toggleAccepted(g: string) {
     setAccepted((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
   }
@@ -318,7 +324,7 @@ export function OnboardingConversation({ mode }: { mode: 'text' | 'voice' }) {
 
       {mode === 'voice' && !voiceSupported ? (
         <p className="mt-3 rounded-lg border border-blush-500/40 bg-blush-500/5 p-3 text-xs text-cream-50/70">
-          Your browser doesn’t support voice input — you can still type every answer below, or open
+          Your browser doesn’t support voice input, you can still type every answer below, or open
           this in Chrome for the full spoken experience.
         </p>
       ) : null}
@@ -372,10 +378,10 @@ export function OnboardingConversation({ mode }: { mode: 'text' | 'voice' }) {
             </div>
           </div>
 
-          {/* Photos — required for new members */}
+          {/* Photos, required for new members */}
           <div className="border-t border-cream-50/10 pt-5">
             <p className="font-display text-lg text-cream-50">Add your photos</p>
-            <p className="mt-1 text-xs text-cream-50/55">Real, recent photos of you. At least one — your matches only ever see these.</p>
+            <p className="mt-1 text-xs text-cream-50/55">Real, recent photos of you. At least one, your matches only ever see these.</p>
             <div className="mt-4 flex flex-wrap gap-3">
               {photos.map((p) => (
                 <img key={p.id} src={p.url} alt="Your photo" className="h-20 w-20 rounded-lg object-cover ring-1 ring-cream-50/10" />
@@ -427,22 +433,37 @@ export function OnboardingConversation({ mode }: { mode: 'text' | 'voice' }) {
               <MicIcon />
             </button>
           </div>
-          <Button variant="gold" size="lg" onClick={() => void submitAnswer(input)} disabled={thinking || !input.trim()}>
-            {awaitingFinal ? 'Send & wrap up' : 'Send'}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button variant="gold" size="lg" className="flex-1" onClick={() => void submitAnswer(input)} disabled={thinking || !input.trim()}>Send</Button>
+            {canFinish ? (
+              <button type="button" onClick={finishConversation} disabled={thinking} className="shrink-0 text-sm text-cream-50/55 hover:text-cream-50/90">
+                I&apos;m ready →
+              </button>
+            ) : null}
+          </div>
+          {canFinish ? (
+            <p className="text-center text-xs text-cream-50/40">Keep talking as long as you like, or tap “I&apos;m ready” to finish.</p>
+          ) : null}
         </div>
       ) : (
-        <div className="flex items-end gap-3">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void submitAnswer(input); } }}
-            rows={1}
-            placeholder={awaitingFinal ? 'Your answer, then we wrap up…' : 'Type your reply…'}
-            disabled={thinking || phase === 'loading'}
-            className="min-h-[48px] flex-1 resize-none rounded-xl border border-cream-50/15 bg-ink-700 px-4 py-3 text-sm text-cream-50 outline-none focus:border-gold-500/60 disabled:opacity-50"
-          />
-          <Button variant="gold" size="lg" onClick={() => void submitAnswer(input)} disabled={thinking || !input.trim()}>Send</Button>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-end gap-3">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void submitAnswer(input); } }}
+              rows={1}
+              placeholder="Type your reply…"
+              disabled={thinking || phase === 'loading'}
+              className="min-h-[48px] flex-1 resize-none rounded-xl border border-cream-50/15 bg-ink-700 px-4 py-3 text-sm text-cream-50 outline-none focus:border-gold-500/60 disabled:opacity-50"
+            />
+            <Button variant="gold" size="lg" onClick={() => void submitAnswer(input)} disabled={thinking || !input.trim()}>Send</Button>
+          </div>
+          {canFinish ? (
+            <button type="button" onClick={finishConversation} disabled={thinking} className="self-center text-sm text-cream-50/55 hover:text-cream-50/90">
+              I&apos;ve shared enough, take me to the finish →
+            </button>
+          ) : null}
         </div>
       )}
     </main>

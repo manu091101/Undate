@@ -21,7 +21,7 @@ const ATTACHMENT_OPTIONS = [
   { value: 'SECURE', label: 'I want to talk it through quickly' },
   { value: 'AVOIDANT', label: 'I need space to think before talking' },
   { value: 'ANXIOUS', label: 'I try to fix it without making a fuss' },
-  { value: 'DISORGANIZED', label: 'It depends — I notice it changes' },
+  { value: 'DISORGANIZED', label: 'It depends, I notice it changes' },
 ];
 
 const KIDS_OPTIONS = [
@@ -29,7 +29,7 @@ const KIDS_OPTIONS = [
   { value: 'OPEN', label: 'Open to it' },
   { value: 'NO', label: 'I do not want children' },
   { value: 'HAVE_WANT_MORE', label: 'I have children and want more' },
-  { value: 'HAVE_DONE', label: 'I have children — no more' },
+  { value: 'HAVE_DONE', label: 'I have children, no more' },
 ];
 
 const GENDER_OPTIONS = [
@@ -42,14 +42,17 @@ export default function OnboardingClassicPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [picks, setPicks] = useState<string[]>([]);
-  const [goal, setGoal] = useState('SERIOUS_DATING');
-  const [attachment, setAttachment] = useState('SECURE');
-  const [kids, setKids] = useState('OPEN');
+  // No pre-selected answers, the member must actively choose.
+  const [goal, setGoal] = useState('');
+  const [attachment, setAttachment] = useState('');
+  const [kids, setKids] = useState('');
   const [pace, setPace] = useState(4);
   const [bio, setBio] = useState('');
-  const [accepted, setAccepted] = useState<string[]>(['MAN']);
+  const [accepted, setAccepted] = useState<string[]>([]);
   const [ageMin, setAgeMin] = useState(28);
   const [ageMax, setAgeMax] = useState(40);
+  const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -65,10 +68,31 @@ export default function OnboardingClassicPage() {
     setAccepted((cur) => (cur.includes(gender) ? cur.filter((x) => x !== gender) : [...cur, gender]));
   }
 
+  async function uploadPhoto(file: File) {
+    setUploading(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.append('photo', file);
+      const res = await fetch('/api/photos/upload', { method: 'POST', body: fd });
+      const j = (await res.json()) as { ok?: boolean; photo?: { id: string; s3Key: string }; error?: string };
+      if (j.ok && j.photo) setPhotos((p) => [...p, { id: j.photo!.id, url: j.photo!.s3Key }]);
+      else setError(j.error === 'too_large' ? 'That image is over 8MB.' : 'Could not upload that photo. Try another.');
+    } catch {
+      setError('Upload failed. Try again.');
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function submit() {
     setError(null);
     if (picks.length < 3) {
       setError('Pick at least three values.');
+      return;
+    }
+    if (!goal || !attachment || !kids) {
+      setError('Please answer every question before finishing.');
       return;
     }
     if (bio.trim().length < 10) {
@@ -81,6 +105,10 @@ export default function OnboardingClassicPage() {
     }
     if (ageMin >= ageMax) {
       setError('Your minimum age must be below the maximum.');
+      return;
+    }
+    if (photos.length === 0) {
+      setError('Add at least one photo so your matches can see you.');
       return;
     }
     setSubmitting(true);
@@ -138,20 +166,20 @@ export default function OnboardingClassicPage() {
     {
       title: 'What are you looking for?',
       body: <RadioGroup name="goal" value={goal} onChange={setGoal} options={GOAL_OPTIONS} />,
-      canAdvance: true,
+      canAdvance: goal !== '',
     },
     {
-      title: 'When something is wrong between you and a partner, you usually—',
+      title: 'When something is wrong between you and a partner, you usually...',
       body: <RadioGroup name="attachment" value={attachment} onChange={setAttachment} options={ATTACHMENT_OPTIONS} />,
-      canAdvance: true,
+      canAdvance: attachment !== '',
     },
     {
       title: 'Children?',
       body: <RadioGroup name="kids" value={kids} onChange={setKids} options={KIDS_OPTIONS} />,
-      canAdvance: true,
+      canAdvance: kids !== '',
     },
     {
-      title: 'Most weeknights you prefer—',
+      title: 'Most weeknights you prefer, ',
       help: `${pace <= 2 ? 'Quiet at home' : pace >= 6 ? 'Out with people' : 'A bit of both'}`,
       body: (
         <div className="flex flex-col gap-3">
@@ -173,7 +201,7 @@ export default function OnboardingClassicPage() {
       canAdvance: true,
     },
     {
-      title: 'In one line — who are you?',
+      title: 'In one line, who are you?',
       help: `${bio.length}/280`,
       body: (
         <textarea
@@ -221,6 +249,26 @@ export default function OnboardingClassicPage() {
         </div>
       ),
       canAdvance: accepted.length > 0 && ageMin < ageMax,
+    },
+    {
+      title: 'Add your photos.',
+      help: 'Real, recent photos of you. At least one, your matches only ever see these.',
+      body: (
+        <div className="flex flex-wrap gap-3">
+          {photos.map((p) => (
+            <img key={p.id} src={p.url} alt="Your photo" className="h-24 w-24 rounded-lg object-cover ring-1 ring-cream-50/10" />
+          ))}
+          {photos.length < 6 ? (
+            <label className={`flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-cream-50/25 text-cream-50/50 hover:border-gold-500/60 ${uploading ? 'opacity-50' : ''}`}>
+              <span className="text-2xl leading-none">＋</span>
+              <span className="mt-1 text-[10px]">{uploading ? 'Uploading…' : 'Add'}</span>
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploading}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadPhoto(f); e.target.value = ''; }} />
+            </label>
+          ) : null}
+        </div>
+      ),
+      canAdvance: photos.length > 0,
     },
   ];
 

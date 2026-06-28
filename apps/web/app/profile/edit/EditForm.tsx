@@ -171,7 +171,7 @@ export default function EditForm({
         <CardContent className="p-6">
           <SectionHeading>Photos</SectionHeading>
           <p className="mt-1 text-xs text-cream-50/55">
-            Up to six. First photo is your primary — it&apos;s what other members see in their drop.
+            Up to six. First photo is your primary, it&apos;s what other members see in their drop.
           </p>
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
             {photos.map((p) => (

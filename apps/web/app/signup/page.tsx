@@ -69,7 +69,7 @@ function SignupForm() {
 
       {inviteToken ? (
         <div className="mt-6 rounded-xl border border-gold-500/30 bg-gold-500/10 p-4 text-sm text-cream-50/80">
-          Your invitation has been accepted. Welcome — let&apos;s set up your account.
+          Your invitation has been accepted. Welcome, let&apos;s set up your account.
         </div>
       ) : null}
 

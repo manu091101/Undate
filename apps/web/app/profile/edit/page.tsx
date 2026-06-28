@@ -50,7 +50,7 @@ export default async function EditProfilePage() {
       </Link>
       <h1 className="mt-8 font-display text-4xl tracking-tight">Edit your profile</h1>
       <p className="mt-3 max-w-xl text-sm text-cream-50/60">
-        Changes save instantly. Photos are stripped of EXIF data on upload — your location is never
+        Changes save instantly. Photos are stripped of EXIF data on upload, your location is never
         attached to a file you share.
       </p>
 
