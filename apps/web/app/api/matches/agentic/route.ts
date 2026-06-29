@@ -162,7 +162,7 @@ export async function POST() {
 
   const ranked = rank(myFeatures, candFeatures, RING_SIZE);
   if (ranked.length === 0) {
-    return NextResponse.json({ ok: true, weekId: weekId(), matches: [], ran: 0 });
+    return NextResponse.json({ ok: true, weekId: weekId(), matches: [], ran: 0, screened: candFeatures.length });
   }
 
   const myPersona = toPersona(meRaw);
@@ -217,7 +217,7 @@ export async function POST() {
     },
   }));
 
-  return NextResponse.json({ ok: true, weekId: weekId(), ran: rounds.length, matches });
+  return NextResponse.json({ ok: true, weekId: weekId(), ran: rounds.length, screened: candFeatures.length, matches });
 }
 
 function weekId(): string {

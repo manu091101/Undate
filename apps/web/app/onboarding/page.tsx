@@ -4,11 +4,11 @@ import { Logo } from '../../components/Logo';
 export const metadata = { title: 'Onboarding' };
 
 const MEASURES = [
-  { k: 'Personality (OCEAN)', v: 'Openness, conscientiousness, extraversion, agreeableness, and emotional steadiness.' },
-  { k: 'Personality type', v: 'A Myers-Briggs read (e.g. INFJ) mapped from how you think and connect.' },
-  { k: 'Attachment & values', v: 'How you handle closeness, and the handful of things you build a life around.' },
-  { k: 'Intentions', v: 'What you actually want, and whether children are part of the picture.' },
-  { k: 'Conversation style', v: 'Direct, gentle, playful, reflective, or analytical, a gentle nudge, never a filter.' },
+  { k: 'The Big Five (OCEAN)', v: 'Openness, conscientiousness, extraversion, agreeableness and emotional steadiness, the trait model that actually holds up in the research.' },
+  { k: 'Attachment & values', v: 'How you handle closeness, and the handful of things you build a life around, the strongest signals for ruling out a mismatch.' },
+  { k: 'Intentions & dealbreakers', v: 'What you actually want, and whether children are part of the picture.' },
+  { k: 'Conversation style', v: 'Direct, gentle, playful, reflective or analytical, a gentle nudge, never a filter.' },
+  { k: 'A personality type, for flavor', v: 'We will tag you with a familiar Myers-Briggs label (e.g. INFJ) because it is fun, but the real work above is what drives your matches.' },
 ];
 
 export default function OnboardingChooser() {

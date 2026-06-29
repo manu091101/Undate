@@ -401,6 +401,44 @@ async function main() {
     },
   });
 
+  // Give the founder a COMPLETE, high-compatibility profile (SECURE, life-partner
+  // intent, values overlapping the secure male members) so the live demo surfaces
+  // a strong match instead of a defaults-driven low score. Works on create+update.
+  const founderValues = ['Family', 'Curiosity', 'Honesty', 'Health', 'Humor'];
+  const founderBigFive: [number, number, number, number, number] = [0.7, 0.72, 0.5, 0.7, 0.28];
+  await prisma.profile.update({
+    where: { userId: founder.id },
+    data: { relationshipGoal: RelationshipGoal.LIFE_PARTNER },
+  });
+  await prisma.preferences.upsert({
+    where: { userId: founder.id },
+    update: { acceptedGenders: [Gender.MAN], ageMin: 30, ageMax: 44, goalsAcceptable: ['SERIOUS_DATING', 'MARRIAGE', 'LIFE_PARTNER'] },
+    create: { userId: founder.id, acceptedGenders: [Gender.MAN], ageMin: 30, ageMax: 44, goalsAcceptable: ['SERIOUS_DATING', 'MARRIAGE', 'LIFE_PARTNER'] },
+  });
+  await prisma.personalityProfile.upsert({
+    where: { userId: founder.id },
+    update: {
+      attachmentStyle: AttachmentStyle.SECURE, communicationStyle: 'DIRECT', mbtiType: deriveMbti(founderBigFive),
+      openness: founderBigFive[0], conscientiousness: founderBigFive[1], extraversion: founderBigFive[2], agreeableness: founderBigFive[3], neuroticism: founderBigFive[4],
+      modelVersion: 'seed-v0.1',
+    },
+    create: {
+      userId: founder.id, attachmentStyle: AttachmentStyle.SECURE, communicationStyle: 'DIRECT', mbtiType: deriveMbti(founderBigFive),
+      openness: founderBigFive[0], conscientiousness: founderBigFive[1], extraversion: founderBigFive[2], agreeableness: founderBigFive[3], neuroticism: founderBigFive[4],
+      modelVersion: 'seed-v0.1',
+    },
+  });
+  await prisma.onboardingResponse.upsert({
+    where: { userId_questionKey: { userId: founder.id, questionKey: 'values_top5' } },
+    create: { userId: founder.id, questionKey: 'values_top5', answer: { picks: founderValues, schwartz: valuesToSchwartz(founderValues) } },
+    update: { answer: { picks: founderValues, schwartz: valuesToSchwartz(founderValues) } },
+  });
+  await prisma.onboardingResponse.upsert({
+    where: { userId_questionKey: { userId: founder.id, questionKey: 'kids' } },
+    create: { userId: founder.id, questionKey: 'kids', answer: { pick: 'YES' } },
+    update: { answer: { pick: 'YES' } },
+  });
+
   // A few WAITING entries (with questionnaire answers) so the admin Approve
   // button has something to act on out of the box.
   const demoWaitlist = [

@@ -30,7 +30,7 @@ const TICKER = [
 const STEPS = [
   {
     n: '01',
-    title: 'Request an invitation',
+    title: 'Join the waitlist',
     body: 'Tell us a little about yourself and what you are looking for. Membership is considered, not automatic.',
   },
   {
@@ -51,9 +51,9 @@ const STEPS = [
 ];
 
 const STATS = [
-  { k: '1', label: 'considered match at a time' },
+  { k: '1', label: 'considered introduction at a time' },
   { k: '0', label: 'swipes, feeds or like counts' },
-  { k: '92%', label: 'agent-rated chemistry before you meet' },
+  { k: '100%', label: 'screened by your agent before you meet' },
 ];
 
 const VALUES = [
@@ -69,7 +69,11 @@ const FAQ = [
   },
   {
     q: 'What do you mean by AI agents?',
-    a: 'After your onboarding, we build a private AI persona of you. Before any introduction, your agent has short mock conversations with other members’ agents in the background, judging real chemistry, so the match you receive has already been pressure-tested.',
+    a: 'After your onboarding, we build a private AI persona of you. Before any introduction, your agent has short mock conversations with other members’ agents in the background, stress-testing for dealbreakers, attachment traps and quiet red flags. Its job is subtraction: rule out who would never work, so the match you receive is one you could not have ruled out yourself.',
+  },
+  {
+    q: 'Can you predict who I will fall for?',
+    a: 'No, and we will not pretend to. The research is clear that what people say before meeting barely predicts long-term happiness, so we do not sell prophecy. What we do is remove the people you could never work with, the clashing life goals, the anxious-avoidant traps, and kill the wasted first dates. Whether you click is for the two of you to find out, in person.',
   },
   {
     q: 'Who can join?',
@@ -102,7 +106,7 @@ export default function MarketingPage() {
             </Link>
             <Link href="/waitlist">
               <Button variant="gold" size="sm">
-                Request invite
+                Join the Waitlist
               </Button>
             </Link>
           </nav>
@@ -149,7 +153,7 @@ export default function MarketingPage() {
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <Link href="/waitlist">
                 <Button size="xl" variant="gold">
-                  Request your invitation →
+                  Join the Waitlist →
                 </Button>
               </Link>
               <Link href="/about">
@@ -201,7 +205,7 @@ export default function MarketingPage() {
               </div>
               <div data-depth="1.6" data-rot="0deg" className="absolute bottom-10 left-4 z-40">
                 <Sticker rotate="8deg" tone="cream">
-                  92% match
+                  one match
                 </Sticker>
               </div>
               <div data-depth="2" data-rot="0deg" className="absolute -bottom-6 left-1/2 z-40 -translate-x-1/2">
@@ -260,14 +264,14 @@ export default function MarketingPage() {
               Your agent meets theirs, <span className="italic text-gold-300">before you ever do.</span>
             </h2>
             <p className="mt-6 max-w-md leading-relaxed text-cream-50/70">
-              From your conversation we build a private AI persona of you. Each cycle, it steps into a
-              quiet matchmaking ring and holds short mock conversations with other members’ agents , 
-              hundreds of tiny first dates run in the background.
+              From your conversation we build a private AI persona of you. Each cycle it ranks everyone
+              in your pool, then runs short mock conversations with the closest handful of agents to see
+              who would actually hold up over dinner.
             </p>
             <p className="mt-4 max-w-md leading-relaxed text-cream-50/70">
-              It filters out the mismatched vibes and the quiet red flags, then surfaces the one
-              person worth your evening, with a debrief of exactly why your two agents clicked. Only
-              then do the humans take over.
+              Its real job is subtraction: it rules out the dealbreakers, the attachment traps and the
+              quiet red flags, so the one introduction you get is someone you could never have ruled out
+              yourself. Then the humans take over.
             </p>
           </Reveal>
 
@@ -280,17 +284,17 @@ export default function MarketingPage() {
               <p className="mb-5 text-center font-pixel text-lg text-cream-50/55">a mock date, run by two agents</p>
               <div className="space-y-3">
                 <ChatBubble side="left" who="Your agent">
-                  She is INFJ, slow Sundays, secure. Wants a real partner. What is yours actually after?
+                  She is secure, low-drama, big on family and depth. Wants a real partner. What is yours actually after?
                 </ChatBubble>
                 <ChatBubble side="right" who="Their agent">
-                  Same, and he lights up about family. They would talk through dinner.
+                  Same page on kids and pace, no dealbreakers either way. They would talk through dinner.
                 </ChatBubble>
                 <ChatBubble side="left" who="Your agent">
-                  Agreed. Strong on attachment and values. I would put them in front of each other.
+                  Agreed, nothing here would blow up. Strong on attachment and values. Worth a real evening.
                 </ChatBubble>
               </div>
               <p className="mt-5 flex items-center justify-center gap-2 text-center font-pixel text-xl text-gold-300">
-                92% chemistry · introduced
+                no dealbreakers · introduced
               </p>
             </div>
           </Reveal>
@@ -401,7 +405,7 @@ export default function MarketingPage() {
             <div className="mt-8 flex justify-center">
               <Link href="/waitlist">
                 <Button size="xl" variant="primary">
-                  Request your invitation →
+                  Join the Waitlist →
                 </Button>
               </Link>
             </div>

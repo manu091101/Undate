@@ -31,6 +31,7 @@ interface AgenticResponse {
   ok: boolean;
   weekId: string;
   ran: number;
+  screened?: number;
   matches: AgenticMatch[];
 }
 
@@ -39,9 +40,9 @@ type Convo = { kind: 'none' } | { kind: 'composing' } | { kind: 'sent' } | { kin
 
 const RING_STEPS = [
   'Spinning up your agent…',
-  'Running mock dates against the pool…',
-  'Filtering mismatched vibes & red flags…',
-  'Scoring chemistry…',
+  'Ranking everyone in your pool…',
+  'Ruling out dealbreakers & red flags…',
+  'Running deep mock dates on the closest…',
   'Curating your one introduction…',
 ];
 
@@ -133,9 +134,9 @@ export default function WeeklyMatch() {
           One introduction, chosen by your agent.
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-cream-50/70">
-          Your AI agent runs mock dates against the pool using a real compatibility algorithm,
-          weighing attachment, values, temperament, conversation style and more, then surfaces the
-          single person worth meeting this week. The humans take it from there.
+          Your AI agent ranks your whole pool on a real compatibility algorithm, attachment, values,
+          temperament, conversation style and more, then runs deep mock dates on the closest and rules
+          out everyone who would never work. What is left is the one person worth your evening.
         </p>
         <Button variant="gold" size="lg" className="mt-6" onClick={runRing}>
           Reveal this week&apos;s match →
@@ -188,7 +189,7 @@ export default function WeeklyMatch() {
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-gold-700">This week&apos;s introduction · {data.weekId}</p>
             <p className="mt-1 text-xs text-cream-50/45">
-              Your agent ran {data.ran} mock {data.ran === 1 ? 'date' : 'dates'} and chose one.
+              Your agent screened {data.screened ?? 'your whole'} {data.screened ? 'people' : 'pool'}, ran deep mock dates on the closest, and ruled out the rest.
             </p>
           </div>
           <div className="rounded-xl border border-cream-50/10 bg-ink-700/50 px-4 py-2">
@@ -203,7 +204,7 @@ export default function WeeklyMatch() {
               <img src={m.profile.primaryPhoto} alt={m.profile.displayName} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
               <div className="absolute left-4 top-4 rounded-full bg-gold-500/90 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white">Your match</div>
               <div className="absolute bottom-4 right-4 rounded-full border border-gold-500/60 bg-ink-900/80 px-3 py-1.5 text-xs font-mono text-gold-300 backdrop-blur">
-                {Math.round(m.chemistry * 100)}% chemistry
+                {Math.round(m.chemistry * 100)}% compatible
               </div>
             </div>
             <CardContent className="flex flex-col gap-5 p-8">

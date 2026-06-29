@@ -77,7 +77,7 @@ export default function WaitlistPage() {
       <Link href="/" className="text-sm text-cream-50/60 hover:text-cream-50">
         ← Undate
       </Link>
-      <h1 className="mt-10 font-display text-4xl tracking-tight">Request your invitation.</h1>
+      <h1 className="mt-10 font-display text-4xl tracking-tight">Join the waitlist.</h1>
       <p className="mt-4 text-cream-50/70">
         Membership is by invitation. A few short questions help our curators understand who you are
         and what you&apos;re looking for.

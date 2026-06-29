@@ -38,7 +38,7 @@ export default function AboutPage() {
           Membership is by invitation. Tell us a little about yourself and we&apos;ll be in touch.
         </p>
         <div className="mt-6 flex gap-3">
-          <Link href="/waitlist"><Button variant="gold">Request your invitation</Button></Link>
+          <Link href="/waitlist"><Button variant="gold">Join the Waitlist</Button></Link>
           <Link href="/journal"><Button variant="ghost">Read the Journal</Button></Link>
         </div>
       </section>
