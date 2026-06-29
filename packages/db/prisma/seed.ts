@@ -331,14 +331,14 @@ async function upsertMember(m: DemoMember): Promise<string> {
     update: { answer: { pick: m.kids } },
   });
 
-  // Photos. We use pravatar.cc with deterministic image IDs so the same demo
-  // user always gets the same face — important for screen recordings.
-  // Wipe and recreate to keep idempotency on repeated `pnpm db:seed`.
+  // Photos. Gender-matched portraits so a demo face always agrees with the
+  // profile's stated gender (pravatar was random-gender). Deterministic IDs keep
+  // the same face across reseeds, important for screen recordings.
   await prisma.photo.deleteMany({ where: { userId: user.id } });
   await prisma.photo.createMany({
     data: m.photoIds.map((imgId, idx) => ({
       userId: user.id,
-      s3Key: `https://i.pravatar.cc/800?img=${imgId}`,
+      s3Key: portraitUrl(m.gender, imgId),
       width: 800,
       height: 800,
       orderIdx: idx,
@@ -348,6 +348,12 @@ async function upsertMember(m: DemoMember): Promise<string> {
     })),
   });
   return user.id;
+}
+
+/** A gender-matched demo portrait. randomuser.me serves men/women folders. */
+function portraitUrl(gender: Gender, seed: number): string {
+  const folder = gender === Gender.MAN ? 'men' : gender === Gender.WOMAN ? 'women' : seed % 2 === 0 ? 'women' : 'men';
+  return `https://randomuser.me/api/portraits/${folder}/${seed % 100}.jpg`;
 }
 
 async function main() {
@@ -362,7 +368,7 @@ async function main() {
       passwordHash: founderPw,
       authProvider: AuthProvider.EMAIL,
       status: UserStatus.ACTIVE,
-      isAdmin: true, // demo admin — signs in to the /admin curation dashboard
+      isAdmin: true, // demo admin, signs in to the /admin curation dashboard
       residencyRegion: Region.SG,
       locale: 'en',
       profile: {
@@ -377,6 +383,21 @@ async function main() {
         },
       },
       subscription: { create: { tier: SubscriptionTier.CONCIERGE, status: 'ACTIVE' } },
+    },
+  });
+
+  // Give the founder a gender-matched primary photo (she is a woman).
+  await prisma.photo.deleteMany({ where: { userId: founder.id } });
+  await prisma.photo.create({
+    data: {
+      userId: founder.id,
+      s3Key: portraitUrl(Gender.WOMAN, 68),
+      width: 800,
+      height: 800,
+      orderIdx: 0,
+      isPrimary: true,
+      moderationStatus: 'APPROVED' as const,
+      blurhash: null,
     },
   });
 
@@ -432,7 +453,7 @@ async function main() {
     });
   }
 
-  // A PENDING_REVIEW user — registered + onboarded, awaiting admin Activate.
+  // A PENDING_REVIEW user, registered + onboarded, awaiting admin Activate.
   const pendingPw = await bcrypt.hash(PASSWORD, 12);
   const pendingDob = new Date();
   pendingDob.setFullYear(pendingDob.getFullYear() - 32);
@@ -486,7 +507,7 @@ async function main() {
 
   // ─── Seed one MUTUAL conversation + one INTRO so the demo inbox is alive ──
   // Priya ↔ Arjun = MUTUAL with a populated thread.
-  // Mei → Raj    = ACCEPTED_A (intro sent, awaiting his reply) — shows the
+  // Mei → Raj    = ACCEPTED_A (intro sent, awaiting his reply), shows the
   //                 "introduction" inbox state.
   const seedById = async (email: string) => {
     const u = await prisma.user.findUnique({ where: { email }, select: { id: true } });
@@ -523,7 +544,7 @@ async function main() {
     },
   });
 
-  // 1) Priya ↔ Arjun MUTUAL — a populated quiet match.
+  // 1) Priya ↔ Arjun MUTUAL, a populated quiet match.
   {
     const { aId, bId } = canonical(priyaId, arjunId);
     const match = await prisma.match.create({
@@ -552,18 +573,18 @@ async function main() {
       {
         senderId: arjunId,
         body:
-          "Priya — your bio says 'slow reader' and that's the most calming thing I've read all week. What's on your bedside table right now?",
+          "Priya, your bio says 'slow reader' and that's the most calming thing I've read all week. What's on your bedside table right now?",
         ageMin: 28 * 60,
       },
       {
         senderId: priyaId,
         body:
-          "Arjun — Tomas Tranströmer (someone gave me a copy two years ago and I've been pacing through it) and a very practical book on retaining walls. Yours?",
+          "Arjun, Tomas Tranströmer (someone gave me a copy two years ago and I've been pacing through it) and a very practical book on retaining walls. Yours?",
         ageMin: 26 * 60,
       },
       {
         senderId: arjunId,
-        body: "I am, embarrassingly, three chapters into 'The Master and Margarita' for the third time. It feels Russian-winter-coded — wrong for May. What did you do this Sunday?",
+        body: "I am, embarrassingly, three chapters into 'The Master and Margarita' for the third time. It feels Russian-winter-coded, wrong for May. What did you do this Sunday?",
         ageMin: 5 * 60,
       },
       {
@@ -617,7 +638,7 @@ async function main() {
         senderId: meiId,
         kind: 'TEXT',
         body:
-          'Raj — the line about looking for kindness in small things landed. The smallest kindness I have received recently was a stranger holding the lift for me with a bag of groceries. What about you?',
+          'Raj, the line about looking for kindness in small things landed. The smallest kindness I have received recently was a stranger holding the lift for me with a bag of groceries. What about you?',
         aiAssisted: false,
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
       },
@@ -630,9 +651,9 @@ async function main() {
     demoMembers: ids.length,
     seededConversations: 2,
     password: PASSWORD,
-    admin: 'founder@undate.local (isAdmin) — open /admin after signing in',
-    pendingReview: 'pending@undate.local — Activate from /admin',
-    waitlist: 'noor@ / devon@ / aria@undate.local — Approve from /admin',
+    admin: 'founder@undate.local (isAdmin), open /admin after signing in',
+    pendingReview: 'pending@undate.local, Activate from /admin',
+    waitlist: 'noor@ / devon@ / aria@undate.local, Approve from /admin',
     members: DEMO_MEMBERS.map((m) => m.email).join(', '),
     note: 'All accounts share the password above. Sign in at /login.',
   });

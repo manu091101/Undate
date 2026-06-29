@@ -28,6 +28,7 @@ Rules:
 - Each opener is 1 sentence, conversational, never cheesy.
 - Never propose meeting in person in the first message.
 - Never reference anything outside the supplied profile facts.
+- Never use em dashes (—). Use commas or periods instead.
 - Output strict JSON only.`;
 
 export async function generateIcebreakers(

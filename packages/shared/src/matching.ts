@@ -3,12 +3,12 @@
 // LightGBM model trained from curator labels takes over.
 //
 // All claims here are anchored to peer-reviewed literature:
-//   - Joel, Eastwick et al. 2020 (PNAS) — pre-meeting similarity is weak signal
-//   - Karney & Bradbury 1995/2020 — VSA model (stress + adaptive processes)
-//   - Malouff 2010 meta-analysis — neuroticism predicts dissolution (r ≈ -.22)
-//   - Mikulincer & Shaver 2016 — attachment-style pairing matrix
-//   - Schwartz 1992, Roccas & Sagiv 2010 — values congruence
-//   - Gere & Schimmack 2013 — goal congruence (kids/marriage) is a hard filter
+//   - Joel, Eastwick et al. 2020 (PNAS), pre-meeting similarity is weak signal
+//   - Karney & Bradbury 1995/2020, VSA model (stress + adaptive processes)
+//   - Malouff 2010 meta-analysis, neuroticism predicts dissolution (r ≈ -.22)
+//   - Mikulincer & Shaver 2016, attachment-style pairing matrix
+//   - Schwartz 1992, Roccas & Sagiv 2010, values congruence
+//   - Gere & Schimmack 2013, goal congruence (kids/marriage) is a hard filter
 
 // Re-use the enum string-literal types from enums.ts so we don't double-declare.
 import type { AttachmentStyle, RelationshipGoal } from './enums';
@@ -148,8 +148,8 @@ export function mbtiAffinity(a: UserFeatures, b: UserFeatures): number {
   const x = a.mbti.toUpperCase();
   const y = b.mbti.toUpperCase();
   let s = 0.5;
-  if (x[1] === y[1]) s += 0.15; // same N/S — how you take in the world
-  if (x[2] === y[2]) s += 0.1; // same F/T — how you decide
+  if (x[1] === y[1]) s += 0.15; // same N/S, how you take in the world
+  if (x[2] === y[2]) s += 0.1; // same F/T, how you decide
   if (x[0] !== y[0]) s += 0.1; // complementary E/I
   if (x[3] !== y[3]) s += 0.05; // complementary J/P
   return Math.max(0, Math.min(1, s));

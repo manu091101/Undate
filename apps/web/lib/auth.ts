@@ -1,9 +1,9 @@
 // Undate auth primitives. Production-credible building blocks; demo-friendly defaults.
 //
-//   hashPassword / verifyPassword  — bcrypt 12 rounds, locked to ascii passwords ≤ 72 bytes
-//   signSession / verifySession    — HS256 JWT via jose, 7-day expiry, edge-safe
-//   getSession / requireSession    — read the httpOnly cookie in Route Handlers + RSC
-//   setSessionCookie / clearSessionCookie — single source of truth for the cookie surface
+//   hashPassword / verifyPassword , bcrypt 12 rounds, locked to ascii passwords ≤ 72 bytes
+//   signSession / verifySession   , HS256 JWT via jose, 7-day expiry, edge-safe
+//   getSession / requireSession   , read the httpOnly cookie in Route Handlers + RSC
+//   setSessionCookie / clearSessionCookie, single source of truth for the cookie surface
 //
 // Production Phase 1 will replace this with passkey + OTP + refresh-token rotation
 // (see docs/SECURITY_AUDIT.md). This module is intentionally small and replaceable.
@@ -21,7 +21,7 @@ function getSecretKey(): Uint8Array {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('JWT_ACCESS_SECRET must be set in production');
     }
-    // Dev fallback — printed on every server boot so it's obvious.
+    // Dev fallback, printed on every server boot so it's obvious.
     return new TextEncoder().encode(
       'dev-only-access-secret-64-chars-do-not-use-this-in-production-xxxx',
     );

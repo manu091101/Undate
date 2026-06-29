@@ -23,7 +23,7 @@ export const palette = {
     500: '#E8C5C0', // emotional moments only
   },
   sparkle: {
-    500: '#B8A4D9', // AI affordance — single allowed color for ✦
+    500: '#B8A4D9', // AI affordance, single allowed color for ✦
   },
 } as const;
 

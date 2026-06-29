@@ -1,4 +1,4 @@
-// Curated catalogs for profile pickers. Keep these short and deliberate —
+// Curated catalogs for profile pickers. Keep these short and deliberate , 
 // Hinge's interest list ran to ~500 tags and degraded quickly. We choose
 // a smaller, more dignified set.
 

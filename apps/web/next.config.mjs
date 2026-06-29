@@ -14,7 +14,7 @@ const csp = [
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
     : "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://cdn.lumin.ai https://images.unsplash.com https://i.pravatar.cc https://images.pexels.com",
+  "img-src 'self' data: blob: https://cdn.lumin.ai https://images.unsplash.com https://i.pravatar.cc https://images.pexels.com https://randomuser.me",
   "font-src 'self' data:",
   isDev
     ? "connect-src 'self' ws: wss: http://localhost:* https://api.lumin.ai wss://api.lumin.ai"

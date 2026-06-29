@@ -4,14 +4,118 @@
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    /* True black with a few soft, warm rose light sources for cinematic depth. */
+    background-color: #000000;
+    background-image:
+      radial-gradient(60rem 60rem at 12% -10%, rgba(210, 122, 137, 0.14), transparent 60%),
+      radial-gradient(48rem 48rem at 100% 0%, rgba(232, 181, 189, 0.08), transparent 55%),
+      radial-gradient(70rem 50rem at 50% 120%, rgba(148, 67, 79, 0.14), transparent 60%);
+    background-attachment: fixed;
   }
+
   ::selection {
-    background-color: #ec4899;
-    color: #ffffff;
+    background-color: #d27a89;
+    color: #000000;
+  }
+
+  /* Pixel-perfect rendering for the retro display face. */
+  .font-pixel {
+    -webkit-font-smoothing: none;
+    image-rendering: pixelated;
+    letter-spacing: 0.01em;
+  }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #000000;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #3a2a2c;
+    border-radius: 999px;
+    border: 3px solid #000000;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94434f;
+  }
+}
+
+@layer components {
+  /* Outlined "sticker" text — chunky retro headline treatment. */
+  .text-outline {
+    color: transparent;
+    -webkit-text-stroke: 2px #f6f1ff;
+  }
+  .text-outline-rose {
+    color: transparent;
+    -webkit-text-stroke: 2px #d27a89;
+  }
+
+  /* A subtle film grain overlay you can drop over hero sections. */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Faint pixel-grid backdrop for retro sections. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(210, 122, 137, 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(210, 122, 137, 0.07) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  /* Edge fade mask for marquees. */
+  .marquee-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 8%,
+      #000 92%,
+      transparent
+    );
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+}
+
+@layer utilities {
+  .perspective {
+    perspective: 1000px;
+  }
+  /* Animated gradient text fill. */
+  .text-gradient {
+    background: linear-gradient(100deg, #e8b5bd, #d27a89, #dd97a2, #94434f);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -67,7 +67,7 @@ export type ProfileDraftInput = z.infer<typeof ProfileDraftInput>;
 export const MatchActionInput = z.object({
   targetUserId: z.string().uuid(),
   action: z.enum(['PASS', 'SAVE', 'CONNECT']),
-  /** Required if action=CONNECT. The user's OWN opener message — Lumin never sends. */
+  /** Required if action=CONNECT. The user's OWN opener message, Lumin never sends. */
   openerText: z.string().min(2).max(2000).optional(),
   /** Optional: opener anchors to a specific prompt or photo on the recipient's profile. */
   anchor: z
@@ -193,13 +193,13 @@ export const ChatTurn = z.object({
 });
 export type ChatTurn = z.infer<typeof ChatTurn>;
 
-// POST /api/onboarding/chat — request the next chatbot turn given the history.
+// POST /api/onboarding/chat, request the next chatbot turn given the history.
 export const OnboardingChatInput = z.object({
   history: z.array(ChatTurn).max(40),
 });
 export type OnboardingChatInput = z.infer<typeof OnboardingChatInput>;
 
-// POST /api/onboarding/finalize — infer a trait profile from the whole transcript.
+// POST /api/onboarding/finalize, infer a trait profile from the whole transcript.
 export const OnboardingChatFinalizeInput = z.object({
   transcript: z.array(ChatTurn).min(2).max(40),
   acceptedGenders: z
