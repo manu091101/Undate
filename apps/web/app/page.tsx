@@ -15,12 +15,12 @@ const HERO_PHOTOS = [
 ] as const;
 
 const GALLERY = [
-  { src: '/brand/couple-beach-dance.png', alt: 'Dancing at golden hour on the sand', caption: 'golden hour', rotate: '-5deg' },
-  { src: '/brand/couple-hands-flower.png', alt: 'Holding hands, carrying a flower', caption: 'first bloom', rotate: '4deg' },
-  { src: '/brand/couple-alley-night.png', alt: 'Carried home through an old town alley', caption: 'the long way home', rotate: '-3deg' },
-  { src: '/brand/couple-beach-run.png', alt: 'Running barefoot along the shore', caption: 'barefoot', rotate: '5deg' },
-  { src: '/brand/couple-car-night.png', alt: 'Laughing together on a late drive', caption: 'quiet night', rotate: '-4deg' },
-  { src: '/brand/couple-hands-flower.png', alt: 'A real connection', caption: 'the real thing', rotate: '3deg' },
+  { src: '/brand/couple-beach-dance.png', alt: 'Dancing at golden hour on the sand', caption: 'For the golden hours', rotate: '-5deg' },
+  { src: '/brand/couple-hands-flower.png', alt: 'Holding hands, carrying a flower', caption: 'For fresh blooms', rotate: '4deg' },
+  { src: '/brand/couple-alley-night.png', alt: 'Carried home through an old town alley', caption: 'For the long way home', rotate: '-3deg' },
+  { src: '/brand/couple-beach-run.png', alt: 'Running barefoot along the shore', caption: 'For barefoot nights', rotate: '5deg' },
+  { src: '/brand/couple-car-night.png', alt: 'Laughing together on a late drive', caption: 'For quiet nights', rotate: '-4deg' },
+  { src: '/brand/couple-hands-flower.png', alt: 'A real connection', caption: 'For the real thing', rotate: '3deg' },
 ];
 
 const TICKER = [
@@ -30,8 +30,8 @@ const TICKER = [
 const STEPS = [
   {
     n: '01',
-    title: 'Join the waitlist',
-    body: 'Tell us a little about yourself and what you are looking for. Membership is considered, not automatic.',
+    title: 'Request access',
+    body: 'Tell us a little about yourself and what you are looking for. Every member is considered, not automatic.',
   },
   {
     n: '02',
@@ -51,9 +51,9 @@ const STEPS = [
 ];
 
 const STATS = [
-  { k: '1', label: 'considered introduction at a time' },
-  { k: '0', label: 'swipes, feeds or like counts' },
-  { k: '100%', label: 'screened by your agent before you meet' },
+  { k: 'One', label: 'considered introduction at a time' },
+  { k: 'Zero', label: 'swipes, feeds or like counts' },
+  { k: 'Real', label: 'chemistry, judged before you ever meet' },
 ];
 
 const VALUES = [
@@ -77,7 +77,7 @@ const FAQ = [
   },
   {
     q: 'Who can join?',
-    a: 'Verified adults, 21 and over, who are dating with intention. Membership is by invitation so the community stays small and trustworthy.',
+    a: 'Verified adults who are dating with intention. We keep the community small and trustworthy.',
   },
   {
     q: 'Is my information private?',
@@ -106,7 +106,7 @@ export default function MarketingPage() {
             </Link>
             <Link href="/waitlist">
               <Button variant="gold" size="sm">
-                Join the Waitlist
+                Request access
               </Button>
             </Link>
           </nav>
@@ -118,9 +118,13 @@ export default function MarketingPage() {
         <div className="grid items-center gap-12 md:grid-cols-[1.05fr_0.95fr]">
           {/* Copy */}
           <Reveal>
-            <p className="mb-6 inline-flex items-center gap-2 rounded-full border-2 border-gold-500/40 bg-gold-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-gold-300">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold-400" />
-              By invitation · for people dating on purpose
+            <p className="mb-2 font-pixel text-2xl leading-none tracking-tight text-cream-50 sm:text-3xl">
+              <span className="text-gold-400">Un</span>Swipe.{' '}
+              <span className="text-gold-400">Un</span>Limit.{' '}
+              <span className="text-gold-400">Un</span>Date.
+            </p>
+            <p className="mb-7 text-xs font-semibold uppercase tracking-[0.22em] text-cream-50/55">
+              for people dating with intent.
             </p>
             <h1 className="font-display text-[3.25rem] font-light leading-[0.95] tracking-tight text-cream-50 sm:text-6xl md:text-[4.5rem]">
               Meet someone
@@ -153,7 +157,7 @@ export default function MarketingPage() {
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <Link href="/waitlist">
                 <Button size="xl" variant="gold">
-                  Join the Waitlist →
+                  Request access →
                 </Button>
               </Link>
               <Link href="/about">
@@ -162,9 +166,6 @@ export default function MarketingPage() {
                 </Button>
               </Link>
             </div>
-            <p className="mt-8 text-xs font-semibold uppercase tracking-[0.18em] text-cream-50/40">
-              By invitation only · 21+ · Verified members
-            </p>
           </Reveal>
 
           {/* Photo collage layover, mouse-parallax stage */}
@@ -175,7 +176,6 @@ export default function MarketingPage() {
                 <Polaroid
                   src={HERO_PHOTOS[0]}
                   alt="A couple at golden hour"
-                  caption="introduced · last spring"
                   rotate="4deg"
                   imgClassName="h-52 w-64 sm:w-72"
                 />
@@ -392,20 +392,19 @@ export default function MarketingPage() {
         <Reveal>
           <div className="grain relative overflow-hidden rounded-[2rem] border-2 border-black bg-gold-500 px-8 py-16 text-center shadow-retro">
             <div className="pointer-events-none absolute -left-6 top-6 animate-float-slow">
-              <Sticker rotate="-14deg" tone="cream">21+ only</Sticker>
+              <Sticker rotate="-14deg" tone="cream">no swiping</Sticker>
             </div>
             <div className="pointer-events-none absolute -right-3 bottom-8 animate-float">
-              <Sticker rotate="12deg" tone="black">by invitation</Sticker>
+              <Sticker rotate="12deg" tone="black">with intent</Sticker>
             </div>
-            <p className="font-pixel text-4xl text-white md:text-6xl">ready to be considered?</p>
+            <p className="font-pixel text-4xl text-white md:text-6xl">ready to meet someone real?</p>
             <p className="mx-auto mt-5 max-w-md text-base text-white/90">
-              Membership is by invitation. Tell us a little about yourself and your matchmaker takes
-              it from there.
+              Tell us a little about yourself and your matchmaker takes it from there.
             </p>
             <div className="mt-8 flex justify-center">
               <Link href="/waitlist">
                 <Button size="xl" variant="primary">
-                  Join the Waitlist →
+                  Request access →
                 </Button>
               </Link>
             </div>

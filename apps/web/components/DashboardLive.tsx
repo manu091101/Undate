@@ -77,7 +77,7 @@ export function DashboardLive({ matchName = 'your match' }: { matchName?: string
 
         {done ? (
           <div className="mt-5 flex animate-fade-up flex-wrap items-center justify-between gap-3 border-t border-cream-50/10 pt-5">
-            <p className="font-pixel text-xl text-gold-300">92% chemistry · 1 match ready</p>
+            <p className="font-pixel text-xl text-gold-300">real chemistry · your match is ready</p>
             <Button variant="gold" size="sm" onClick={() => setOpen(true)}>
               Meet {matchName} →
             </Button>
