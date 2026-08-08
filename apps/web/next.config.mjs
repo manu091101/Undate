@@ -44,6 +44,8 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
+          // Prevent sticky edge cache of the temporary Hono HTML rewrite.
+          { key: 'Cache-Control', value: 'private, no-cache, no-store, max-age=0, must-revalidate' },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
