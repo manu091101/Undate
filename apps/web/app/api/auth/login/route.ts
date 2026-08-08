@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@lumin/db';
 import { LoginInput } from '@lumin/shared';
 import { verifyPassword, signSession, setSessionCookie } from '../../../../lib/auth';
+import { getD1, mapUser } from '../../../../lib/d1';
 
-export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -13,13 +13,14 @@ export async function POST(req: Request) {
   }
   const { email, password } = parsed.data;
 
-  // Constant-time compare: always run bcrypt even if user doesn't exist so we
-  // don't leak existence via response timing.
   const dummyHash = '$2a$12$abcdefghijklmnopqrstuOPq8O/eYkmqx7Mb3.zKqXcgFqU.lLbe6.';
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, email: true, passwordHash: true, status: true, residencyRegion: true, isAdmin: true },
-  });
+  const db = await getD1();
+  const raw = await db
+    .prepare('SELECT * FROM users WHERE email = ? COLLATE NOCASE')
+    .bind(email.trim().toLowerCase())
+    .first();
+  const user = mapUser(raw as Record<string, unknown> | null);
+
   const ok = await verifyPassword(password, user?.passwordHash ?? dummyHash);
   if (!user || !user.passwordHash || !ok) {
     return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
@@ -28,7 +29,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'account_inactive' }, { status: 403 });
   }
 
-  await prisma.user.update({ where: { id: user.id }, data: { lastActiveAt: new Date() } });
+  await db
+    .prepare(`UPDATE users SET last_active_at = datetime('now') WHERE id = ?`)
+    .bind(user.id)
+    .run();
 
   const token = await signSession({
     sub: user.id,

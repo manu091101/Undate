@@ -17,8 +17,8 @@ const csp = [
   "img-src 'self' data: blob: https://cdn.lumin.ai https://images.unsplash.com https://i.pravatar.cc https://images.pexels.com https://randomuser.me",
   "font-src 'self' data:",
   isDev
-    ? "connect-src 'self' ws: wss: http://localhost:* https://api.lumin.ai wss://api.lumin.ai"
-    : "connect-src 'self' https://api.lumin.ai wss://api.lumin.ai",
+    ? "connect-src 'self' ws: wss: http://localhost:* https://api.lumin.ai wss://api.lumin.ai https://undateapp.com"
+    : "connect-src 'self' https://undateapp.com https://api.lumin.ai wss://api.lumin.ai",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -28,7 +28,8 @@ const csp = [
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@lumin/ui', '@lumin/shared', '@lumin/db', '@lumin/ai'],
-  serverExternalPackages: ['@prisma/client', '@anthropic-ai/sdk', 'openai'],
+  // Prisma engines are not used on CF (D1 path). Keep AI SDKs external.
+  serverExternalPackages: ['@anthropic-ai/sdk', 'openai', 'sharp'],
   typedRoutes: true,
   images: {
     remotePatterns: [
@@ -55,3 +56,8 @@ const nextConfig = {
   },
 };
 export default nextConfig;
+
+// OpenNext: enable Cloudflare bindings during `next dev` when available.
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
+initOpenNextCloudflareForDev();
+

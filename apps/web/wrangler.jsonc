@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "undate",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "account_id": "df4acced87263715777b0c2068d03b22",
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "undate"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "undate",
+      "database_id": "5bd66e31-4836-42c6-b1aa-0406cdaa11c0"
+    }
+  ],
+  "vars": {
+    "APP_NAME": "Undate",
+    "APP_URL": "https://undateapp.com"
+  }
+}

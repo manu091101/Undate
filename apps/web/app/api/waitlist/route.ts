@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { WaitlistJoinInput } from '@lumin/shared';
-import { prisma } from '@lumin/db';
+import { getD1, mapWaitlist, newId } from '../../../lib/d1';
 
-// Node runtime, Prisma can't run on Edge. Force this so deploys don't surprise us.
-export const runtime = 'nodejs';
+// Original waitlist API — same request/response shape; D1 instead of Prisma.
 export const dynamic = 'force-dynamic';
 
 function makeReferralCode(): string {
-  // 8 hex chars, plenty for uniqueness at our scale, short enough to share.
   return 'UNDATE-' + Math.random().toString(16).slice(2, 10).toUpperCase();
 }
 
@@ -18,36 +16,56 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { email, phoneE164, city, region, answers } = parsed.data;
-  // Note: `referralCode` on input is the inviter's code; not yet resolved to a referrer here.
+  const { email, city, region } = parsed.data;
+  const emailNorm = email.trim().toLowerCase();
+  const referralCode = makeReferralCode();
 
   try {
-    const entry = await prisma.waitlistEntry.upsert({
-      where: { email },
-      create: {
-        email,
-        phoneE164,
-        city,
-        region,
-        referralCode: makeReferralCode(),
-        answers: answers ?? undefined,
-      },
-      update: {
-        // Idempotent: an existing entry keeps its position; refresh the
-        // questionnaire answers if they were re-submitted.
-        phoneE164: phoneE164 ?? undefined,
-        city: city ?? undefined,
-        answers: answers ?? undefined,
-      },
-    });
+    const db = await getD1();
+    const existing = await db
+      .prepare('SELECT * FROM waitlist WHERE email = ? COLLATE NOCASE')
+      .bind(emailNorm)
+      .first();
+
+    if (existing) {
+      await db
+        .prepare(
+          `UPDATE waitlist SET city = COALESCE(?, city), region = COALESCE(?, region) WHERE email = ? COLLATE NOCASE`,
+        )
+        .bind(city ?? null, region ?? null, emailNorm)
+        .run();
+      const row = await db
+        .prepare('SELECT * FROM waitlist WHERE email = ? COLLATE NOCASE')
+        .bind(emailNorm)
+        .first();
+      const entry = mapWaitlist(row as Record<string, unknown>);
+      return NextResponse.json({
+        ok: true,
+        data: {
+          email: entry!.email,
+          region: entry!.region,
+          referralCode: entry!.referralCode,
+          status: entry!.status,
+        },
+      });
+    }
+
+    const id = newId('w');
+    await db
+      .prepare(
+        `INSERT INTO waitlist (id, email, city, region, referral_code, status)
+         VALUES (?, ?, ?, ?, ?, 'WAITING')`,
+      )
+      .bind(id, emailNorm, city ?? null, region, referralCode)
+      .run();
 
     return NextResponse.json({
       ok: true,
       data: {
-        email: entry.email,
-        region: entry.region,
-        referralCode: entry.referralCode,
-        status: entry.status,
+        email: emailNorm,
+        region,
+        referralCode,
+        status: 'WAITING',
       },
     });
   } catch (e) {

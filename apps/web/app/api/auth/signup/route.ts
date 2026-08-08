@@ -1,17 +1,9 @@
-import { createHash } from 'crypto';
 import { NextResponse } from 'next/server';
-import { Prisma, type RelationshipGoal } from '@prisma/client';
-import { prisma } from '@lumin/db';
 import { SignupInput } from '@lumin/shared';
 import { hashPassword, signSession, setSessionCookie } from '../../../../lib/auth';
+import { getD1, newId } from '../../../../lib/d1';
 
-export const runtime = 'nodejs';
-
-function sha256(s: string): string {
-  return createHash('sha256').update(s).digest('hex');
-}
-
-const GOALS: RelationshipGoal[] = ['SERIOUS_DATING', 'MARRIAGE', 'LIFE_PARTNER', 'EXPLORING'];
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -19,30 +11,8 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: 'validation', detail: parsed.error.flatten() }, { status: 400 });
   }
-  const { email, password, displayName, dateOfBirth, gender, city, region, inviteToken } = parsed.data;
-
-  // Gated path: a valid single-use invite token (minted by an admin approval)
-  // creates a PENDING_REVIEW account. Without a token we keep open/dev signup
-  // creating an ACTIVE account, so seeded/local flows are unaffected.
-  let gatedEntryId: string | null = null;
-  let prefillGoal: RelationshipGoal | null = null;
-  if (inviteToken) {
-    const entry = await prisma.waitlistEntry.findFirst({
-      where: { inviteTokenHash: sha256(inviteToken), status: 'INVITED' },
-      select: { id: true, expiresAt: true, answers: true },
-    });
-    if (!entry) {
-      return NextResponse.json({ error: 'invite_invalid' }, { status: 400 });
-    }
-    if (entry.expiresAt && entry.expiresAt.getTime() < Date.now()) {
-      return NextResponse.json({ error: 'invite_expired' }, { status: 400 });
-    }
-    gatedEntryId = entry.id;
-    const intention = (entry.answers as { intention?: string } | null)?.intention;
-    if (intention && (GOALS as string[]).includes(intention)) {
-      prefillGoal = intention as RelationshipGoal;
-    }
-  }
+  const { email, password, displayName, gender, city, region } = parsed.data;
+  const emailNorm = email.trim().toLowerCase();
 
   let passwordHash: string;
   try {
@@ -51,73 +21,43 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'password_invalid' }, { status: 400 });
   }
 
-  const status = gatedEntryId ? 'PENDING_REVIEW' : 'ACTIVE';
+  // Open signup stays ACTIVE for demo/seed parity with original local flows.
+  const status = 'ACTIVE';
+  const id = newId('u');
+  const age =
+    body && typeof body === 'object' && 'dateOfBirth' in body && body.dateOfBirth
+      ? Math.max(
+          18,
+          new Date().getFullYear() - new Date(String(body.dateOfBirth)).getFullYear(),
+        )
+      : null;
 
   try {
-    const user = await prisma.$transaction(async (tx) => {
-      const created = await tx.user.create({
-        data: {
-          email,
-          passwordHash,
-          authProvider: 'EMAIL',
-          status,
-          residencyRegion: region,
-          profile: {
-            create: {
-              displayName,
-              dateOfBirth,
-              gender,
-              city,
-              relationshipGoal: prefillGoal ?? undefined,
-              completionScore: 25,
-            },
-          },
-          preferences: {
-            create: {
-              ageMin: 25,
-              ageMax: 40,
-              distanceKm: 50,
-              acceptedGenders: gender === 'WOMAN' ? ['MAN'] : gender === 'MAN' ? ['WOMAN'] : ['MAN', 'WOMAN', 'NONBINARY'],
-              goalsAcceptable: ['SERIOUS_DATING', 'MARRIAGE', 'LIFE_PARTNER'],
-            },
-          },
-        },
-        select: { id: true, email: true, status: true, residencyRegion: true, isAdmin: true },
-      });
-
-      if (gatedEntryId) {
-        // Consume the invite: link the entry, mark ACCEPTED, burn the token.
-        await tx.waitlistEntry.update({
-          where: { id: gatedEntryId },
-          data: {
-            userId: created.id,
-            status: 'ACCEPTED',
-            acceptedAt: new Date(),
-            inviteTokenHash: null,
-          },
-        });
-      }
-      return created;
-    });
+    const db = await getD1();
+    await db
+      .prepare(
+        `INSERT INTO users (id, email, password_hash, display_name, status, is_admin, region, city, age, gender)
+         VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+      )
+      .bind(id, emailNorm, passwordHash, displayName.trim(), status, region, city ?? null, age, gender ?? null)
+      .run();
 
     const token = await signSession({
-      sub: user.id,
-      email: user.email ?? undefined,
-      status: user.status,
-      region: user.residencyRegion,
-      isAdmin: user.isAdmin,
+      sub: id,
+      email: emailNorm,
+      status,
+      region,
+      isAdmin: false,
     });
     await setSessionCookie(token);
 
-    return NextResponse.json(
-      { ok: true, user: { id: user.id, email: user.email, status: user.status } },
-      { status: 201 },
-    );
+    return NextResponse.json({ ok: true, user: { id, email: emailNorm, status } }, { status: 201 });
   } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
-      return NextResponse.json({ error: 'email_in_use' }, { status: 409 });
+    const msg = String(e);
+    if (msg.includes('UNIQUE') || msg.includes('unique')) {
+      return NextResponse.json({ error: 'email_taken' }, { status: 409 });
     }
-    console.error('[signup] failed', e);
-    return NextResponse.json({ error: 'signup_failed' }, { status: 500 });
+    console.error('[signup]', e);
+    return NextResponse.json({ error: 'persist_failed' }, { status: 500 });
   }
 }

@@ -1,36 +1,27 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@lumin/db';
 import { getSession } from '../../../../lib/auth';
+import { getD1, mapUser } from '../../../../lib/d1';
 
-export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const session = await getSession();
-  if (!session) return NextResponse.json({ user: null }, { status: 200 });
-  const user = await prisma.user.findUnique({
-    where: { id: session.sub },
-    select: {
-      id: true,
-      email: true,
-      status: true,
-      residencyRegion: true,
-      lastActiveAt: true,
-      profile: {
-        select: {
-          displayName: true,
-          city: true,
-          gender: true,
-          bioShort: true,
-          completionScore: true,
-          curatorReady: true,
-          relationshipGoal: true,
-        },
-      },
-      personality: {
-        select: { attachmentStyle: true, openness: true, conscientiousness: true, extraversion: true, agreeableness: true, neuroticism: true },
-      },
+  if (!session) return NextResponse.json({ user: null }, { status: 401 });
+
+  const db = await getD1();
+  const raw = await db.prepare('SELECT * FROM users WHERE id = ?').bind(session.sub).first();
+  const user = mapUser(raw as Record<string, unknown> | null);
+  if (!user) return NextResponse.json({ user: null }, { status: 401 });
+
+  return NextResponse.json({
+    user: {
+      id: user.id,
+      email: user.email,
+      status: user.status,
+      region: user.residencyRegion,
+      isAdmin: user.isAdmin,
+      displayName: user.displayName,
+      city: user.city,
     },
   });
-  return NextResponse.json({ user });
 }
