@@ -101,9 +101,6 @@ export default function MarketingPage() {
             <Link href="/about" className="hidden text-cream-50/70 transition-colors hover:text-gold-300 sm:inline">
               How it works
             </Link>
-            <Link href="/login" className="text-cream-50/70 transition-colors hover:text-gold-300">
-              Sign in
-            </Link>
             <Link href="/waitlist">
               <Button variant="gold" size="sm">
                 Request access
