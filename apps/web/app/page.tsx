@@ -30,7 +30,7 @@ const TICKER = [
 const STEPS = [
   {
     n: '01',
-    title: 'Request access',
+    title: 'Join Waitlist',
     body: 'Tell us a little about yourself and what you are looking for. Every member is considered, not automatic.',
   },
   {
@@ -106,7 +106,7 @@ export default function MarketingPage() {
             </Link>
             <Link href="/waitlist">
               <Button variant="gold" size="sm">
-                Request access
+                Join Waitlist
               </Button>
             </Link>
           </nav>
@@ -157,7 +157,7 @@ export default function MarketingPage() {
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <Link href="/waitlist">
                 <Button size="xl" variant="gold">
-                  Request access →
+                  Join Waitlist →
                 </Button>
               </Link>
               <Link href="/about">
@@ -404,7 +404,7 @@ export default function MarketingPage() {
             <div className="mt-8 flex justify-center">
               <Link href="/waitlist">
                 <Button size="xl" variant="primary">
-                  Request access →
+                  Join Waitlist →
                 </Button>
               </Link>
             </div>
