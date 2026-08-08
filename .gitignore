@@ -123,3 +123,8 @@ apps/cf/node_modules/
 apps/cf/.wrangler/
 apps/cf/dist/
 .wrangler/
+
+.open-next/
+apps/web/.open-next/
+apps/cf/node_modules/
+apps/web/.wrangler/
