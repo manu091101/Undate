@@ -117,3 +117,9 @@ tmp/
 *.mov
 *.mp4
 apps/web/public/uploads/
+
+# Cloudflare app
+apps/cf/node_modules/
+apps/cf/.wrangler/
+apps/cf/dist/
+.wrangler/

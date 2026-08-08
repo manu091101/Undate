@@ -1,0 +1,26 @@
+name = "undate"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+account_id = "df4acced87263715777b0c2068d03b22"
+
+# Static brand assets + CSS (Pages-style asset serving on Workers)
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "none"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "undate"
+database_id = "5bd66e31-4836-42c6-b1aa-0406cdaa11c0"
+migrations_dir = "migrations"
+
+[vars]
+APP_NAME = "Undate"
+APP_URL = "https://undateapp.com"
+
+# JWT_SECRET set via `wrangler secret put JWT_SECRET`
+
+[observability]
+enabled = true
